@@ -232,50 +232,101 @@ void writeSector(char* buffer, int sector){
    interrupt(0x13, 0x301, buffer, div(sector, 36) * 0x100 + mod(sector, 18) + 1, mod(div(sector, 18), 2) * 0x100);
 }
 
+int findIndexDirectory(char *name, int root){
+   int i, j;
+   char dirs[SECTOR_SIZE];
+   char elemen;
+   readSector(dirs, DIRS_SECTOR);
+
+   for (i = 0; i < MAX_DIRECTORY; i++){
+      for (j = 0; j < 16; j++){
+         elemen = dirs[(i * 16) + j];
+         if (j == 0 && elemen != root){
+            break;
+         }else {
+            if (elemen != name[j - 1]){
+               break;
+            }
+         }
+      }
+
+      if (j == 16){
+         return i;
+      }
+   }
+
+   return -1;
+}
+
+int findIndexFile(char *name, int root){
+   int i, j;
+   char files[SECTOR_SIZE];
+   char elemen;
+   readSector(files, FILES_SECTOR);
+
+   for (i = 0; i < MAX_DIRECTORY; i++){
+      for (j = 0; j < 16; j++){
+         elemen = files[(i * 16) + j];
+         if (j == 0 && elemen != root){
+            break;
+         }else {
+            if (elemen != name[j - 1]){
+               break;
+            }
+         }
+      }
+
+      if (j == 16){
+         return i;
+      }
+   }
+
+   return -1;
+}
+
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
-   //kamus
-   char dirs[SECTOR_SIZE];  //array dir akan berisi sektor dir setelah pemanggilan readSector
-   int i, j, k;
-   int found = 0;          //menandakan apakah filename sudah ketemu
+   int i, j;
+   char name[16];
+   int isFile = 0;
+   char currentRoot = parentIndex;
+   char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+   char fileIndex;
 
-   //algoritma
-   *result = 0;
-   readSector(dirs, DIRS_SECTOR);
-   //printString("MASUK    PAK EKO\n");
+   i = 0;
+   while (!isFile){
+      for (j = 0; j < 16; j++){
+         name[j] = '\0';
+      }
 
-   //cek tiap 12 byte untuk filename
-   for (i = 0; i < SECTOR_SIZE; i = i + DIR_ENTRY_LENGTH){
       j = 0;
-      while (dirs[i + j] == filename[j] && j <=7){
-         j = j + 1;
+      if (path[i] = '\\'){
+         i++;
+      }
+      for (; path[i] != '\0' || path[i] != '\\'; i++){
+         name[j] = path[i];
+         j++;
       }
 
-      if (j == 8){
-         found = 1;
-         break;
+      if (name[i] == '\\'){
+         currentDirIndex = findIndexDirectory(name, currentRoot);
+         if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
+            *result = INSUFFICIENT_DIR_ENTRIES;
+            return;
+         }else {
+            currentRoot = currentDirIndex;
+         }
+      }else {
+         isFile = 1;
       }
    }
 
-   //mulai pengisian buffer
-   if (found == 1){
-      k = 0;
-
-      //udah di test dir[j] itu yang kebaca 13, 14, 15 (sesuai dengan keyproc)
-      for (j = i + MAX_FILENAME;(k < MAX_SECTORS) && (dir[j] != 0); j = j + 1){
-         readSector(buffer + (k * SECTOR_SIZE), dir[j]);
-         //interrupt(0x10, 0xE00 + dir[j]+48, 0, 0, 0);
-         //printString(buffer);
-
-         k = k + 1;
-      }
-      *success = 1;
-      //printString("KELUAR PAK EKO\n");
+   fileIndex = findIndexFile(name, currentRoot);
+   *result = INSUFFICIENT_DIR_ENTRIES;
+   if (fileIndex != -1){
+      *result = 0;
+      readSector(buffer, fileIndex);
    }
-
-
-
-
 }
 
 //implementasi clear (copas)
