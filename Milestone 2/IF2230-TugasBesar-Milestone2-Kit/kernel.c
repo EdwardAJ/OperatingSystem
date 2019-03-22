@@ -1,11 +1,11 @@
 #define MAX_BYTE 256
 #define SECTOR_SIZE 512
-#define MAX_FILES 16
-#define MAX_FILENAME 12
-#define MAX_SECTORS 20
+#define MAX_FILES 32             //Diubah jadi 32 di milestone 2
+#define MAX_FILENAME 15          //Diubah jadi 15 di milestone 2
+#define MAX_SECTORS 16           //Diubah jadi 16 di milestone 2
 #define DIR_ENTRY_LENGTH 32
-#define MAP_SECTOR 1
-#define DIR_SECTOR 2
+#define MAP_SECTOR 100
+#define DIR_SECTOR 101
 #define TRUE 1
 #define FALSE 0
 #define INSUFFICIENT_SECTORS 0
@@ -283,62 +283,25 @@ void clear(char *buffer, int length) {
 }
 
 //implementasi writeFile (copas)
-void writeFile(char *buffer, char* filename, int* sectors){
-   char map[SECTOR_SIZE];
-   char dir[SECTOR_SIZE];
-   char sectorBuffer[SECTOR_SIZE];
-   int dirIndex;
+void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
+   //Milestone 2 variables
+   int i;
+   char dirName[MAX_FILENAME];
+   char map[]
 
    readSector(map, MAP_SECTOR);
    readSector(dir, DIR_SECTOR);
 
-   for (dirIndex = 0; dirIndex < MAX_FILES; ++dirIndex) {
-      if (dir[dirIndex * DIR_ENTRY_LENGTH] == '\0') {
-         break;
-      }
+   //Milestone 2
+   //Dapatkan nama direktori awal
+   for (i = 0; path[i] != '/'; ++i){
+      dirName[i] = path[i];
    }
 
-   if (dirIndex < MAX_FILES) {
-      int i, j, sectorCount;
-      for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i) {
-         if (map[i] == EMPTY) {
-            ++sectorCount;
-         }
-      }
+   if (i == 0){
 
-      if (sectorCount < *sectors) {
-         *sectors = INSUFFICIENT_SECTORS;
-         return;
-      } else {
-         clear(dir + dirIndex * DIR_ENTRY_LENGTH, DIR_ENTRY_LENGTH);
-         for (i = 0; i < MAX_FILENAME; ++i) {
-            if (filename[i] != '\0') {
-               dir[dirIndex * DIR_ENTRY_LENGTH + i] = filename[i];
-            } else {
-               break;
-            }
-         }
-
-         for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i) {
-            if (map[i] == EMPTY) {
-               map[i] = USED;
-               dir[dirIndex * DIR_ENTRY_LENGTH + MAX_FILENAME + sectorCount] = i;
-               clear(sectorBuffer, SECTOR_SIZE);
-               for (j = 0; j < SECTOR_SIZE; ++j) {
-                  sectorBuffer[j] = buffer[sectorCount * SECTOR_SIZE + j];
-               }
-               writeSector(sectorBuffer, i);
-               ++sectorCount;
-            }
-         }
-      }
-   } else { 
-      *sectors = INSUFFICIENT_DIR_ENTRIES;
-      return;
    }
 
-   writeSector(map, MAP_SECTOR);
-   writeSector(dir, DIR_SECTOR);
 
 }
 
