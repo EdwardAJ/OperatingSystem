@@ -230,6 +230,15 @@ void writeSector(char* buffer, int sector){
    interrupt(0x13, 0x301, buffer, div(sector, 36) * 0x100 + mod(sector, 18) + 1, mod(div(sector, 18), 2) * 0x100);
 }
 
+int findIndexDirectory(char *name, char *root){
+   char dirs[SECTOR_SIZE];
+   readSector(dirs, DIRS_SECTOR);
+
+   for (int i = 0; i < MAX_FILES; i++){
+      
+   }
+}
+
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
    //kamus
