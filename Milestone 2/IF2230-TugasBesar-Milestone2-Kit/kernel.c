@@ -1,14 +1,18 @@
 #define MAX_BYTE 256
 #define SECTOR_SIZE 512
-#define MAX_FILES 32             //Diubah jadi 32 di milestone 2
-#define MAX_FILENAME 15          //Diubah jadi 15 di milestone 2
-#define MAX_SECTORS 16           //Diubah jadi 16 di milestone 2
+#define MAX_FILES 32
+#define MAX_FILENAME 15
+#define MAX_SECTORS 16
+#define MAX_DIRECTORY 16
 #define DIR_ENTRY_LENGTH 32
-#define MAP_SECTOR 100
-#define DIR_SECTOR 101
+#define MAP_SECTOR 0x100
+#define DIRS_SECTOR 0x101
+#define FILES_SECTOR 0x102
+#define SECTORS_SECTOR 0x103
 #define TRUE 1
 #define FALSE 0
 #define INSUFFICIENT_SECTORS 0
+#define INSUFFICIENT_ENTRIES -3
 #define NOT_FOUND -1
 #define INSUFFICIENT_DIR_ENTRIES -1
 #define EMPTY 0x00
@@ -37,9 +41,9 @@ int main() {
    static char logo[528] = {
 	' ' ,' ', '_', '_', '_', '_', ' ', '_', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '\\', '_', '_', '_', '_', '_', '/', ' ', ' ', '|', '_', ' ', '_', '_', ' ', '_', '_', '|', ' ', ' ', '|', ' ', '_', '_', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '/', ' ', ' ', ' ', ' ', '\\', ' ', ' ', ' ', '_', '_', '\\', ' ', ' ', '|', ' ', ' ', '\\', ' ', ' ', '|', '/', ' ', '/', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', '/', ' ', ' ', ' ', '|', ' ', ' ', '\\', ' ', ' ', '|', ' ', '|', ' ', ' ', '|', ' ', ' ', '/', ' ', ' ', ' ', ' ', '<', ' ', '\n', '|', '_', '_', '_', '_', '_', '_', '/', '|', '_', '_', '_', '|', ' ', ' ', '/', '_', '_', '|', ' ', '|', '_', '_', '_', '_', '/', '|', '_', '_', '|', '_', ' ', '\\', '\n', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', '\n', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', ' ', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '.', '_', '_', '.', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '.', '_', '.', '\n', '\\', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', '\\', '_', '_', '_', '_', '_', ' ', ' ', '|', ' ', ' ', '|', ' ', '_', '_', ' ', '\\', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', '\\', '_', '_', '|', ' ', ' ', '|', ' ', '_', '_', '_', '_', '_', ' ', '|', ' ', '|', '\n', ' ', '|', ' ', ' ', ' ', ' ', ' ', '_', '_', '_', '/', '\\', '_', '_', ' ', ' ', '\\', ' ', '|', ' ', ' ', '|', '/', ' ', '/', ' ', ' ', '|', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '/', ' ', ' ', '|', ' ', ' ', '|', ' ', '\\', '_', '_', ' ', ' ', '\\', '|', ' ', '|', '\n', ' ', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', ' ', ' ', '/', ' ', '_', '_', ' ', '\\', '|', ' ', ' ', ' ', ' ', '<', ' ', ' ', ' ', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '\\', ' ', ' ', '|', ' ', ' ', '|', '_', '_', '/', ' ', '_', '_', ' ', '\\', '\\', '|', '\n', ' ', '|', '_', '_', '_', '_', '|', ' ', ' ', ' ', ' ', '(', '_', '_', '_', '_', ' ', ' ', '/', '_', '_', '|', '_', ' ', '\\', ' ', ' ', '|', '_', '_', '_', '_', '|', '_', ' ', ' ', '/', '_', '_', '|', '_', '_', '_', '_', '(', '_', '_', '_', '_', ' ', ' ', '/', '_', '\n', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', '\\', '/'
    };
-   
+
    drawLogo(logo, 528);
-   
+
 
    makeInterrupt21();
    //handleInterrupt21(0x6, "keyproc", 0x2000, &success);
@@ -231,19 +235,19 @@ void writeSector(char* buffer, int sector){
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
    //kamus
-   char dir[SECTOR_SIZE];  //array dir akan berisi sektor dir setelah pemanggilan readSector
+   char dirs[SECTOR_SIZE];  //array dir akan berisi sektor dir setelah pemanggilan readSector
    int i, j, k;
    int found = 0;          //menandakan apakah filename sudah ketemu
 
    //algoritma
-   *success = 0;
-   readSector(dir, DIR_SECTOR);
+   *result = 0;
+   readSector(dirs, DIRS_SECTOR);
    //printString("MASUK    PAK EKO\n");
 
    //cek tiap 12 byte untuk filename
    for (i = 0; i < SECTOR_SIZE; i = i + DIR_ENTRY_LENGTH){
       j = 0;
-      while (dir[i + j] == filename[j] && j <=7){
+      while (dirs[i + j] == filename[j] && j <=7){
          j = j + 1;
       }
 
@@ -270,7 +274,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    }
 
 
-   
+
 
 }
 
@@ -285,22 +289,81 @@ void clear(char *buffer, int length) {
 //implementasi writeFile (copas)
 void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    //Milestone 2 variables
-   int i;
+   int i, j, countName, sectorCount;
    char dirName[MAX_FILENAME];
-   char map[]
+   char map[SECTOR_SIZE];
+   char dirs[SECTOR_SIZE];
+   char files[SECTOR_SIZE];
+   char sectors[SECTOR_SIZE];
+   int daftarSektorKosong[16];
 
-   readSector(map, MAP_SECTOR);
-   readSector(dir, DIR_SECTOR);
+   readSector(files, MAP_SECTOR);
+   readSector(dirs, DIR_SECTOR);
+   readSector(map, DIR_SECTOR);
 
-   //Milestone 2
    //Dapatkan nama direktori awal
    for (i = 0; path[i] != '/'; ++i){
       dirName[i] = path[i];
    }
 
+   //Jika mau write ke root
    if (i == 0){
-
+      continue;
    }
+
+   //Cari nama direktori dirName di dirs
+   for (i = 0; i < SECTOR_SIZE; ++i){
+      //Cek indeks parent dengan parentIndex
+      if (mod(i, 16) == 0 && dirs[i] == parentIndex){
+         //Cek nama file
+         for (j = i+1, countName = 0; j < i + 1 + MAX_FILENAME; ++j, ++countName){
+            if (dirs[j] != dirName[countName]){
+               break;
+            }
+         }
+         
+      }else{
+         i = i + 15;
+      }
+      
+   }
+
+   //Jika nama direktori ketemu
+   if (count == 15){
+      //Cek apakah jumlah sektor kosong cukup untuk write file
+      for (i = 0, sectorCount = 0; i < SECTOR_SIZE && sectorCount < *sectors; ++i){
+         if (map[i] == EMPTY){
+            ++sectorCount;
+         }else{
+            sectorCount = 0;
+         }
+      }
+
+      //Set daftarSektor ke -1 semua
+      for (i = 0; i < 16; ++i){
+         daftarSektorKosong[i] = -1;
+      }
+
+       //Jika sectorCount == sector yang diperlukan
+      if (sectorCount == *sectors){
+         //Cek apakah masih tersissa entri kosong pada sektor files
+         for (i = 1; i < SECTOR_SIZE; i + 16){
+            
+         }
+         //Clear semua sektor yang tercatat "kosong" di daftarSektorKosong
+         for (i = 0; daftarSektroKosong[i] != -1; ++i){
+            clear(daftarSektorKosong*SECTOR_SIZE, SECTOR_SIZE);
+            writeSector();
+         }
+         
+      }else{
+         *sectors = 0;
+      }
+   }else{
+      sectors = -1;
+   }
+
+  
 
 
 }
@@ -327,6 +390,11 @@ void executeProgram(char* filename, int segment, int* success){
       readFile(buffer, "key.txt", success);  //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
       printString(buffer);                   //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
    }
+
+   void makeDirectory(char *path, int *result, char parentIndex) {
+      char buffer[MAX_SECTORS*SECTOR_SIZE + MAX_BYTE];
+      int i;
+
+
+   }
 }
-
-
