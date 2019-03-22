@@ -284,7 +284,7 @@ int findIndexFile(char *name, int root){
    return -1;
 }
 
-int findFile(char *path){
+int findFile(char *path, char *currentRootFound){
    int i, j;
    char name[16];
    char currentRoot = 255;
@@ -319,6 +319,7 @@ int findFile(char *path){
       }
    }
 
+   *currentRootFound = currentRoot;
    fileIndex = findIndexFile(name, currentRoot);
    return fileIndex;
 }
