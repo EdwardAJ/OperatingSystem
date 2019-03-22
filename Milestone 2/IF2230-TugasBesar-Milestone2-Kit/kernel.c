@@ -385,6 +385,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    char map[SECTOR_SIZE];
    char dirs[SECTOR_SIZE];
    char files[SECTOR_SIZE];
+   char NamaFile[15];
    int daftarSektorKosong[16];
 
    readSector(files, MAP_SECTOR);
@@ -394,6 +395,20 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    //Dapatkan nama direktori awal
    for (i = 0; path[i] != '/'; ++i){
       dirName[i] = path[i];
+   }
+
+   //Dapatkan nama file
+   for (i = 0; path[i] != '\0'; ++i){
+      if (path[i] == '/'){
+         j = 0;
+      }else{
+         NamaFile[j] = path[i];
+         ++j;
+      }
+   }
+
+   for (;j < 15; ++j){
+      NamaFile[j] = '\0';
    }
 
    //Jika mau write ke root
@@ -420,15 +435,19 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
       //Cek apakah masih tersisa entri kosong pada sektor files
       for (i = 1; i < SECTOR_SIZE; i + 16){
          if (files[i] == '\0'){
-            idxFileKosong = i;
+            idxFileKosong = mod(i-1, 16);
             break;
          }
       }
       if (i < SECTOR_SIZE){
          //Cari index file
          j = findFile(path, &idxParentFile);
+         //Tulis nama file ke files
          if (j != -1){
-
+            files[idxFileKosong*16] = idxParentFile;
+            for (i = 1; i < 16; i++){
+               files[idxFileKosong*16 + i] =  NamaFile[i-1];
+            }
          }else{
             *sectors = -2;
          }
