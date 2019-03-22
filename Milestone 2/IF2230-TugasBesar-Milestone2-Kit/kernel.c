@@ -17,6 +17,7 @@
 #define INSUFFICIENT_DIR_ENTRIES -1
 #define EMPTY 0x00
 #define USED 0xFF
+#define ALREADY_EXISTS 2
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
@@ -340,15 +341,15 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       }
 
       j = 0;
-      if (path[i] = '\\'){
+      if (path[i] = '/'){
          i++;
       }
-      for (; path[i] != '\0' || path[i] != '\\'; i++){
+      for (; path[i] != '\0' || path[i] != '/'; i++){
          name[j] = path[i];
          j++;
       }
 
-      if (name[i] == '\\'){
+      if (name[i] == '/'){
          currentDirIndex = findIndexDirectory(name, currentRoot);
          if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
             *result = INSUFFICIENT_DIR_ENTRIES;
@@ -455,7 +456,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
          *sectors = -3;
       }
       //Clear semua sektor yang tercatat "kosong" di daftarSektorKosong
-      for (i = 0; daftarSektroKosong[i] != -1; ++i){
+      for (i = 0; daftarSektorKosong[i] != -1; ++i){
          clear(daftarSektorKosong*SECTOR_SIZE, SECTOR_SIZE);
          writeSector();
       }
@@ -465,7 +466,6 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    }
 }
 
-}
 
 //implementasi executeProgram (NOT TESTED)
 void executeProgram(char* filename, int segment, int* success){
@@ -489,11 +489,93 @@ void executeProgram(char* filename, int segment, int* success){
       readFile(buffer, "key.txt", success);  //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
       printString(buffer);                   //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
    }
+}
 
-   void makeDirectory(char *path, int *result, char parentIndex) {
-      char buffer[MAX_SECTORS*SECTOR_SIZE + MAX_BYTE];
-      int i;
+void makeDirectory(char *path, int *result, char parentIndex) {
+   int i, j, idxDirKosong;
+   int found; //cek ketemu atau tidak.
+   char name[16];
+   char dirs[SECTOR_SIZE];
+   int isDir = 0;
+   char currentRoot = parentIndex;
+   char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+   char fileIndex;
 
+   //Cek apakah terdapat entry kosong atau tidak pada sektor dirs.
+   found = 0;
+   readSector(dirs, DIR_SECTOR);
+   for (i = 0; i < SECTOR_SIZE; i + MAX_DIRECTORY){
+      if (dirs[i+1] == '\0'){
+         found = 1;
+         idxDirKosong = i;
+         break;
+      }
+   }
 
+   //Jika tidak menemukan entry yang kosong
+   if (!found) {
+      *result = INSUFFICIENT_ENTRIES;
+      return;
+   }
+   //Kalau ditemukan entry yang kosong.
+   else {
+      i = 0;
+      while (!isDir){
+
+         //Inisialisasi name dengan null terminated sepanjang MAX_DIRECTORY (16).
+         for (j = 0; j < MAX_DIRECTORY; j++){
+            name[j] = '\0';
+         }
+         j = 0;
+
+         //Jika variabel i sudah mencapai '/'.
+         if (path[i] = '/'){
+            i++;
+         }
+
+         //Traversal dari i hingga ditemukan '/0' atau '/'.
+         for (; path[i] != '\0' || path[i] != '/'; i++){
+            name[j] = path[i];
+            j++;
+         }
+
+         //Jika path masih berupa dir, belum file.
+         if (name[i] == '/'){
+            currentDirIndex = findIndexDirectory(name, currentRoot);
+            if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
+               *result = INSUFFICIENT_DIR_ENTRIES;
+               return;
+            } 
+            else {
+               currentRoot = currentDirIndex;
+            }
+
+         //Jika sudah harus membaca file.
+         }  else {
+            isFile = 1;
+         }
+   }
+      //Cari file.
+      fileIndex = findIndexFile(name, currentRoot);
+      *result = INSUFFICIENT_DIR_ENTRIES;
+
+      //Kalau file sudah ada. Maka make directory tidak jadi dilaksanakan
+      if (fileIndex != -1){
+         *result = ALREADY_EXISTS;
+         return;
+      //Kalau belum ada file.
+      } else {
+         //Tulis indeks dari direktori pada byte indeks parent (indeks 0)
+         dirs[idxDirKosong] = currentRoot;
+
+         //Tulis isi dari name pada byte setelah indeks parent pada dirs
+         j = 0;
+         for (i = 1; name[j] != '\0' ;i++) {
+            dirs[idxDirKosong + i] = name[j];
+            j++;
+         } 
+         writeSector(dirs,DIR_SECTOR);
+         *result = 0;
+      }
    }
 }
