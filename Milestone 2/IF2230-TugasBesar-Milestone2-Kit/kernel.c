@@ -3,6 +3,7 @@
 #define MAX_FILES 32
 #define MAX_FILENAME 15
 #define MAX_SECTORS 16
+#define MAX_DIRECTORY 16
 #define DIR_ENTRY_LENGTH 32
 #define MAP_SECTOR 0x100
 #define DIRS_SECTOR 0x101
@@ -372,6 +373,6 @@ void executeProgram(char* filename, int segment, int* success){
       char buffer[MAX_SECTORS*SECTOR_SIZE + MAX_BYTE];
       int i;
 
-      
+
    }
 }
