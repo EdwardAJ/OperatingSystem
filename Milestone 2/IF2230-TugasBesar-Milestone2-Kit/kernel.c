@@ -379,7 +379,7 @@ void clear(char *buffer, int length) {
 //implementasi writeFile (copas)
 void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    //Milestone 2 variables
-   int i, j, countName, sectorCount, idxFileKosong;
+   int i, j, countName, sectorCount, idxFileKosong, idxParentFile;
    char dirName[MAX_FILENAME];
    char map[SECTOR_SIZE];
    char dirs[SECTOR_SIZE];
@@ -419,16 +419,18 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
       //Cek apakah masih tersisa entri kosong pada sektor files
       for (i = 1; i < SECTOR_SIZE; i + 16){
          if (files[i] == '\0'){
-
+            idxFileKosong = i;
             break;
          }
       }
       if (i < SECTOR_SIZE){
-         for (i = 0; path[i] != '/'; ++i){
-            dirName[i] = path[i];
-         }
-         
+         //Cari index file
+         j = findFile(path, &idxParentFile);
+         if (j != -1){
 
+         }else{
+            *sectors = -2;
+         }
       }else{
          *sectors = -3;
       }
