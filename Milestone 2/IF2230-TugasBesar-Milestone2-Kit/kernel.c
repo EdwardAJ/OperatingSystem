@@ -4,8 +4,10 @@
 #define MAX_FILENAME 12
 #define MAX_SECTORS 20
 #define DIR_ENTRY_LENGTH 32
-#define MAP_SECTOR 1
-#define DIR_SECTOR 2
+#define MAP_SECTOR 0x100
+#define DIRS_SECTOR 0x101
+#define FILES_SECTOR 0x102
+#define SECTORS_SECTOR 0x103
 #define TRUE 1
 #define FALSE 0
 #define INSUFFICIENT_SECTORS 0
@@ -231,19 +233,19 @@ void writeSector(char* buffer, int sector){
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
    //kamus
-   char dir[SECTOR_SIZE];  //array dir akan berisi sektor dir setelah pemanggilan readSector
+   char dirs[SECTOR_SIZE];  //array dir akan berisi sektor dir setelah pemanggilan readSector
    int i, j, k;
    int found = 0;          //menandakan apakah filename sudah ketemu
 
    //algoritma
-   *success = 0;
-   readSector(dir, DIR_SECTOR);
+   *result = 0;
+   readSector(dirs, DIRS_SECTOR);
    //printString("MASUK    PAK EKO\n");
 
    //cek tiap 12 byte untuk filename
    for (i = 0; i < SECTOR_SIZE; i = i + DIR_ENTRY_LENGTH){
       j = 0;
-      while (dir[i + j] == filename[j] && j <=7){
+      while (dirs[i + j] == filename[j] && j <=7){
          j = j + 1;
       }
 
