@@ -340,12 +340,11 @@ void clear(char *buffer, int length) {
 //implementasi writeFile (copas)
 void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    //Milestone 2 variables
-   int i, j, countName, sectorCount;
+   int i, j, countName, sectorCount, idxFileKosong;
    char dirName[MAX_FILENAME];
    char map[SECTOR_SIZE];
    char dirs[SECTOR_SIZE];
    char files[SECTOR_SIZE];
-   char sectors[SECTOR_SIZE];
    int daftarSektorKosong[16];
 
    readSector(files, MAP_SECTOR);
@@ -362,60 +361,48 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
       continue;
    }
 
-   //Cari nama direktori dirName di dirs
-   for (i = 0; i < SECTOR_SIZE; ++i){
-      //Cek indeks parent dengan parentIndex
-      if (mod(i, 16) == 0 && dirs[i] == parentIndex){
-         //Cek nama file
-         for (j = i+1, countName = 0; j < i + 1 + MAX_FILENAME; ++j, ++countName){
-            if (dirs[j] != dirName[countName]){
-               break;
-            }
+   //Cek apakah jumlah sektor kosong cukup untuk write file
+   for (i = 0, sectorCount = 0; i < SECTOR_SIZE && sectorCount < *sectors; ++i){
+      if (map[i] == EMPTY){
+         ++sectorCount;
+      }else{
+         sectorCount = 0;
+      }
+   }
+
+   //Set daftarSektor ke -1 semua
+   for (i = 0; i < 16; ++i){
+      daftarSektorKosong[i] = -1;
+   }
+
+   //Jika sectorCount == sector yang diperlukan
+   if (sectorCount == *sectors){
+      //Cek apakah masih tersisa entri kosong pada sektor files
+      for (i = 1; i < SECTOR_SIZE; i + 16){
+         if (files[i] == '\0'){
+
+            break;
+         }
+      }
+      if (i < SECTOR_SIZE){
+         for (i = 0; path[i] != '/'; ++i){
+            dirName[i] = path[i];
          }
          
+
       }else{
-         i = i + 15;
+         *sectors = -3;
+      }
+      //Clear semua sektor yang tercatat "kosong" di daftarSektorKosong
+      for (i = 0; daftarSektroKosong[i] != -1; ++i){
+         clear(daftarSektorKosong*SECTOR_SIZE, SECTOR_SIZE);
+         writeSector();
       }
       
-   }
-
-   //Jika nama direktori ketemu
-   if (count == 15){
-      //Cek apakah jumlah sektor kosong cukup untuk write file
-      for (i = 0, sectorCount = 0; i < SECTOR_SIZE && sectorCount < *sectors; ++i){
-         if (map[i] == EMPTY){
-            ++sectorCount;
-         }else{
-            sectorCount = 0;
-         }
-      }
-
-      //Set daftarSektor ke -1 semua
-      for (i = 0; i < 16; ++i){
-         daftarSektorKosong[i] = -1;
-      }
-
-       //Jika sectorCount == sector yang diperlukan
-      if (sectorCount == *sectors){
-         //Cek apakah masih tersissa entri kosong pada sektor files
-         for (i = 1; i < SECTOR_SIZE; i + 16){
-            
-         }
-         //Clear semua sektor yang tercatat "kosong" di daftarSektorKosong
-         for (i = 0; daftarSektroKosong[i] != -1; ++i){
-            clear(daftarSektorKosong*SECTOR_SIZE, SECTOR_SIZE);
-            writeSector();
-         }
-         
-      }else{
-         *sectors = 0;
-      }
    }else{
-      sectors = -1;
+      *sectors = 0;
    }
-
-  
-
+}
 
 }
 
