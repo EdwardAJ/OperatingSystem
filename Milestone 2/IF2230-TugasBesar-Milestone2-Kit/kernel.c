@@ -284,6 +284,45 @@ int findIndexFile(char *name, int root){
    return -1;
 }
 
+int findFile(char *path){
+   int i, j;
+   char name[16];
+   char currentRoot = 255;
+   char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+   int isFile = 0;
+   int fileIndex;
+
+   i = 0;
+   while (!isFile){
+      for (j = 0; j < 16; j++){
+         name[j] = '\0';
+      }
+
+      j = 0;
+      if (path[i] = '/'){
+         i++;
+      }
+      for (; path[i] != '\0' || path[i] != '/'; i++){
+         name[j] = path[i];
+         j++;
+      }
+
+      if (name[i] == '/'){
+         currentDirIndex = findIndexDirectory(name, currentRoot);
+         if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
+            return -1;
+         }else {
+            currentRoot = currentDirIndex;
+         }
+      }else {
+         isFile = 1;
+      }
+   }
+
+   fileIndex = findIndexFile(name, currentRoot);
+   return fileIndex;
+}
+
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
    int i, j;
