@@ -57,11 +57,13 @@ int main() {
 
 
    makeInterrupt21();
+   interrupt(0x21, 0xFF << 8 | 0x00, "Nama saya Edward Alexander", 0x2000, 0x00);
    //handleInterrupt21(0x6, "keyproc", 0x2000, &success);
    //printString("Sukses");
-   handleInterrupt21(0x4, buffer, "key.txt", &success);
-   handleInterrupt21(0x0, buffer);
-   handleInterrupt21(0x1,buffer);
+   interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
+   //handleInterrupt21(0x4, buffer, "key.txt", &success);
+   //handleInterrupt21(0x0, buffer);
+   //handleInterrupt21(0x1,buffer);
 
    while (1);
 }
