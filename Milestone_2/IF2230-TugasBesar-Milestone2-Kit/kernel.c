@@ -30,8 +30,8 @@ void readSector(char *buffer, int sector);
 void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length);
-void writeFile(char *buffer, char *filename, int *sectors);
-void executeProgram(char *filename, int segment, int *success);
+void writeFile(char *buffer, char* path, int* sectors, char parentIndex);
+void executeProgram(char *path, int segment, int *result, char parentIndex);
 void clearScreen(int _lines);
 void drawLogo(char *_logo, int _length);
 void terminateProgram (int *result);
@@ -57,10 +57,14 @@ int main() {
 
 
    makeInterrupt21();
-   interrupt(0x21, 0xFF << 8 | 0x00, "Nama saya Edward Alexander", 0x2000, 0x00);
+   //handleInterrupt21(0x0, "Nama");
+   printString("Sukses");
+
+   //interrupt(0x21, 0x00, "Nama saya Edward Alexander", 0x2000, 0x00);
    //handleInterrupt21(0x6, "keyproc", 0x2000, &success);
    //printString("Sukses");
-   interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
+
+   //interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
    //handleInterrupt21(0x4, buffer, "key.txt", &success);
    //handleInterrupt21(0x0, buffer);
    //handleInterrupt21(0x1,buffer);
