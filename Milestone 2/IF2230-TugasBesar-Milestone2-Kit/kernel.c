@@ -17,7 +17,9 @@
 #define INSUFFICIENT_DIR_ENTRIES -1
 #define EMPTY 0x00
 #define USED 0xFF
+#define ARGS_SECTOR 512
 #define ALREADY_EXISTS 2
+#define SUCCESS 0
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
@@ -440,6 +442,15 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             break;
          }
       }
+
+      for (i = 0; i < SECTOR_SIZE; i + MAX_DIRECTORY){
+         if (dirs[i+1] == '\0'){
+            found = 1;
+            idxDirKosong = i;
+            break;
+         }
+      }
+
       if (i < SECTOR_SIZE){
          //Cari index file
          j = findFile(path, &idxParentFile);
@@ -468,19 +479,19 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
 
 
 //implementasi executeProgram (NOT TESTED)
-void executeProgram(char* filename, int segment, int* success){
+void executeProgram(char *path, int segment, int *result, char parentIndex) {
    //kamus
-   char buffer[MAX_SECTORS*SECTOR_SIZE + MAX_BYTE];   //diambahin buat jaga-jaga nggak semua sektor buffer ke copy
+   char buffer[MAX_SECTORS*SECTOR_SIZE];   //diambahin buat jaga-jaga nggak semua sektor buffer ke copy
    int i;
 
    //algoritma
    //buka file
-   readFile(buffer, filename, success);
+   readFile(buffer, path, result, parentIndex);
 
    //jika pembacaan file sukses
-   if (*success == 1){
+   if (*result == SUCCESS){
       //traversal setiap byte
-      for (i = 0; i < MAX_SECTORS*SECTOR_SIZE + MAX_BYTE; i = i + 1){
+      for (i = 0; i < MAX_SECTORS*SECTOR_SIZE; i++){
          putInMemory(segment, i, buffer[i]);
       }
       //menjalankan program yang di memori
@@ -490,6 +501,8 @@ void executeProgram(char* filename, int segment, int* success){
       printString(buffer);                   //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
    }
 }
+
+
 
 void makeDirectory(char *path, int *result, char parentIndex) {
    int i, j, idxDirKosong;
@@ -579,3 +592,78 @@ void makeDirectory(char *path, int *result, char parentIndex) {
       }
    }
 }
+
+
+
+void terminateProgram (int *result) {
+   char shell[6];
+   shell[0] = 's';
+   shell[1] = 'h';
+   shell[2] = 'e';
+   shell[3] = 'l';
+   shell[4] = 'l';
+   shell[5] = '\0';
+   executeProgram(shell, 0x2000, result, 0xFF);
+}
+
+
+void putArgs (char curdir, char argc, char **argv) {
+   char args[SECTOR_SIZE];
+   int i, j, p;
+   clear(args, SECTOR_SIZE);
+
+   args[0] = curdir;
+   args[1] = argc;
+   i = 0;
+   j = 0;
+   for (p = 1; p < ARGS_SECTOR && i < argc; ++p) {
+      args[p] = argv[i][j];
+      if (argv[i][j] == '\0') {
+         ++i;
+         j = 0;
+      }
+      else {
+         ++j;
+      }
+   }
+
+   writeSector(args, ARGS_SECTOR);
+}
+
+void getCurdir (char *curdir) {
+   char args[SECTOR_SIZE];
+   readSector(args, ARGS_SECTOR);
+   *curdir = args[0];
+}
+
+void getArgc (char *argc) {
+   char args[SECTOR_SIZE];
+   readSector(args, ARGS_SECTOR);
+   *argc = args[1];
+}
+
+void getArgv (char index, char *argv) {
+   char args[SECTOR_SIZE];
+   int i, j, p;
+   readSector(args, ARGS_SECTOR);
+
+   i = 0;
+   j = 0;
+   for (p = 1; p < ARGS_SECTOR; ++p) {
+      if (i == index) {
+         argv[j] = args[p];
+         ++j;
+      }
+
+      if (args[p] == '\0') {
+         if (i == index) {
+            break;
+         }
+         else {
+         ++i;
+         }
+      }
+   }
+}
+
+
