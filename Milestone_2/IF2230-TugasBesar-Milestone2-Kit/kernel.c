@@ -36,6 +36,8 @@ void clearScreen(int _lines);
 void drawLogo(char *_logo, int _length);
 void terminateProgram (int *result);
 void makeDirectory(char *path, int *result, char parentIndex);
+void deleteFile(char *path, int *result, char parentIndex);
+void deleteDirectory(char *path, int *success, char parentIndex);
 void putArgs (char curdir, char argc, char **argv);
 void getCurdir (char *curdir);
 void getArgc (char *argc);
@@ -395,29 +397,19 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    char map[SECTOR_SIZE];
    char dirs[SECTOR_SIZE];
    char files[SECTOR_SIZE];
-   //char NamaFile[15];
-   int daftarSektorKosong[16];
+   char sectorBuffer[SECTOR_SIZE];
    int fileIndex;
-   int idxDaftarSektorKosong = 0;
-
    char currentRoot = parentIndex;
    char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
 
-   readSector(files, MAP_SECTOR);
-   readSector(dirs, DIRS_SECTOR);   
+   //readSector(files, MAP_SECTOR);
+   //readSector(dirs, DIRS_SECTOR);   
    readSector(map, DIRS_SECTOR);
-
-   //Set daftarSektor ke -1 semua
-   for (i = 0; i < 16; ++i){
-      daftarSektorKosong[i] = -1;
-   }
 
    //Cek apakah jumlah sektor kosong pada MAP cukup untuk write file (Step 2)
    sectorCount = 0;
    for (i = 0 ; i < SECTOR_SIZE && sectorCount < *sectors; ++i){
       if (map[i] == EMPTY){
-         daftarSektorKosong[idxDaftarSektorKosong] = map[i];
-         ++idxDaftarSektorKosong;
          ++sectorCount;
       }
       //Tidak perlu
@@ -428,7 +420,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    }
 
    //Kalau jumlah sektor cukup
-   if (sectorCount >= *sectors){
+   if (sectorCount == *sectors){
       //Cek apakah masih tersisa entri kosong pada sektor files (Step 3)
       for (i = 1; i < SECTOR_SIZE; i + MAX_FILES){
          if (files[i] == '\0'){
@@ -483,22 +475,27 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
                files[idxFileKosong*MAX_FILES + i] =  dirName[i-1];
             }
 
-            //Clear semua sektor yang tercatat "kosong" di map yang kosong. (step 7)
-            for (i = 0; daftarSektorKosong[i] != -1; ++i){
-                clear(daftarSektorKosong*SECTOR_SIZE, SECTOR_SIZE);
-                writeSector(files, daftarSektorKosong[i]);
-                //writeSector(buffer, daftarSektorKosong[i]);
-            }
 
-            //Ganti elemen map yang kosong menjadi USED. (step 8)
-            for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i)  {
+            for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i){
                if (map[i] == EMPTY) {
+                  //Ganti elemen map yang kosong menjadi USED. (step 8)
                   map[i] = USED;
+                  //Clear sectorBuffer yang akan diisi dengan buffer.
+                  clear(sectorBuffer, SECTOR_SIZE);
+                  for (j = 0; j < SECTOR_SIZE; ++j) {
+                     //Isi sectorBuffer dengan buffer.
+                     sectorBuffer[j] = buffer[sectorCount * SECTOR_SIZE + j];
+                  }
+                  //Tulis sectorBuffer di sektor ke-i (yang kosong)
+                  writeSector(sectorBuffer,i);
                   ++sectorCount;
                }
             }
 
-
+            //Update sector di map.
+            writeSector(map,MAP_SECTOR);
+            //Tulis file indeks parent dan nama file pada sector files
+            writeSector(files, FILES_SECTOR);
 
          } else {
             //Kalau file sudah ada.
@@ -646,6 +643,14 @@ void terminateProgram (int *result) {
 }
 
 
+void deleteFile(char *path, int *result, char parentIndex) {
+
+}
+
+void deleteDirectory(char *path, int *success, char parentIndex){
+
+}
+
 void putArgs (char curdir, char argc, char **argv) {
    char args[SECTOR_SIZE];
    int i, j, p;
@@ -704,5 +709,7 @@ void getArgv (char index, char *argv) {
       }
    }
 }
+
+
 
 
