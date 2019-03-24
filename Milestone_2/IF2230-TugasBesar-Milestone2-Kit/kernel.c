@@ -47,27 +47,29 @@ int main() {
    int string[256];
    char buffer[MAX_BYTE];
    int success;
-
+   
+   /*
    //ASCII Art untuk logo.
    static char logo[528] = {
-	' ' ,' ', '_', '_', '_', '_', ' ', '_', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '\\', '_', '_', '_', '_', '_', '/', ' ', ' ', '|', '_', ' ', '_', '_', ' ', '_', '_', '|', ' ', ' ', '|', ' ', '_', '_', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '/', ' ', ' ', ' ', ' ', '\\', ' ', ' ', ' ', '_', '_', '\\', ' ', ' ', '|', ' ', ' ', '\\', ' ', ' ', '|', '/', ' ', '/', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', '/', ' ', ' ', ' ', '|', ' ', ' ', '\\', ' ', ' ', '|', ' ', '|', ' ', ' ', '|', ' ', ' ', '/', ' ', ' ', ' ', ' ', '<', ' ', '\n', '|', '_', '_', '_', '_', '_', '_', '/', '|', '_', '_', '_', '|', ' ', ' ', '/', '_', '_', '|', ' ', '|', '_', '_', '_', '_', '/', '|', '_', '_', '|', '_', ' ', '\\', '\n', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', '\n', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', ' ', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '.', '_', '_', '.', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '.', '_', '.', '\n', '\\', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', '\\', '_', '_', '_', '_', '_', ' ', ' ', '|', ' ', ' ', '|', ' ', '_', '_', ' ', '\\', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', '\\', '_', '_', '|', ' ', ' ', '|', ' ', '_', '_', '_', '_', '_', ' ', '|', ' ', '|', '\n', ' ', '|', ' ', ' ', ' ', ' ', ' ', '_', '_', '_', '/', '\\', '_', '_', ' ', ' ', '\\', ' ', '|', ' ', ' ', '|', '/', ' ', '/', ' ', ' ', '|', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '/', ' ', ' ', '|', ' ', ' ', '|', ' ', '\\', '_', '_', ' ', ' ', '\\', '|', ' ', '|', '\n', ' ', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', ' ', ' ', '/', ' ', '_', '_', ' ', '\\', '|', ' ', ' ', ' ', ' ', '<', ' ', ' ', ' ', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '\\', ' ', ' ', '|', ' ', ' ', '|', '_', '_', '/', ' ', '_', '_', ' ', '\\', '\\', '|', '\n', ' ', '|', '_', '_', '_', '_', '|', ' ', ' ', ' ', ' ', '(', '_', '_', '_', '_', ' ', ' ', '/', '_', '_', '|', '_', ' ', '\\', ' ', ' ', '|', '_', '_', '_', '_', '|', '_', ' ', ' ', '/', '_', '_', '|', '_', '_', '_', '_', '(', '_', '_', '_', '_', ' ', ' ', '/', '_', '\n', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', '\\', '/'
+   ' ' ,' ', '_', '_', '_', '_', ' ', '_', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '\\', '_', '_', '_', '_', '_', '/', ' ', ' ', '|', '_', ' ', '_', '_', ' ', '_', '_', '|', ' ', ' ', '|', ' ', '_', '_', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '/', ' ', ' ', ' ', ' ', '\\', ' ', ' ', ' ', '_', '_', '\\', ' ', ' ', '|', ' ', ' ', '\\', ' ', ' ', '|', '/', ' ', '/', '\n', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', '/', ' ', ' ', ' ', '|', ' ', ' ', '\\', ' ', ' ', '|', ' ', '|', ' ', ' ', '|', ' ', ' ', '/', ' ', ' ', ' ', ' ', '<', ' ', '\n', '|', '_', '_', '_', '_', '_', '_', '/', '|', '_', '_', '_', '|', ' ', ' ', '/', '_', '_', '|', ' ', '|', '_', '_', '_', '_', '/', '|', '_', '_', '|', '_', ' ', '\\', '\n', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', '\n', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '_', ' ', ' ', ' ', ' ', ' ', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '.', '_', '_', '.', '_', '_', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '.', '_', '.', '\n', '\\', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', '\\', '_', '_', '_', '_', '_', ' ', ' ', '|', ' ', ' ', '|', ' ', '_', '_', ' ', '\\', '_', '_', '_', '_', '_', '_', ' ', ' ', ' ', '\\', '_', '_', '|', ' ', ' ', '|', ' ', '_', '_', '_', '_', '_', ' ', '|', ' ', '|', '\n', ' ', '|', ' ', ' ', ' ', ' ', ' ', '_', '_', '_', '/', '\\', '_', '_', ' ', ' ', '\\', ' ', '|', ' ', ' ', '|', '/', ' ', '/', ' ', ' ', '|', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '_', '/', ' ', ' ', '|', ' ', ' ', '|', ' ', '\\', '_', '_', ' ', ' ', '\\', '|', ' ', '|', '\n', ' ', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', ' ', ' ', '/', ' ', '_', '_', ' ', '\\', '|', ' ', ' ', ' ', ' ', '<', ' ', ' ', ' ', '|', ' ', ' ', ' ', ' ', '|', ' ', ' ', ' ', '\\', ' ', ' ', '|', ' ', ' ', '|', '_', '_', '/', ' ', '_', '_', ' ', '\\', '\\', '|', '\n', ' ', '|', '_', '_', '_', '_', '|', ' ', ' ', ' ', ' ', '(', '_', '_', '_', '_', ' ', ' ', '/', '_', '_', '|', '_', ' ', '\\', ' ', ' ', '|', '_', '_', '_', '_', '|', '_', ' ', ' ', '/', '_', '_', '|', '_', '_', '_', '_', '(', '_', '_', '_', '_', ' ', ' ', '/', '_', '\n', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\\', '/', '\\', '/'
    };
+   
+   
 
    drawLogo(logo, 528);
 
-
-   makeInterrupt21();
-   //handleInterrupt21(0x0, "Nama");
-   printString("Sukses");
-
-   //interrupt(0x21, 0x00, "Nama saya Edward Alexander", 0x2000, 0x00);
+   */
    //handleInterrupt21(0x6, "keyproc", 0x2000, &success);
-   //printString("Sukses");
-
-   //interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
-   //handleInterrupt21(0x4, buffer, "key.txt", &success);
+   //printString("sukses");
+   //interrupt(0x21, 0x0 , "string" , 0x0 , 0x0);
    //handleInterrupt21(0x0, buffer);
-   //handleInterrupt21(0x1,buffer);
+   makeInterrupt21();
+   interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
+   //handleInterrupt21(0x4, buffer, "key.txt", &success);
+   //andleInterrupt21(0x0, buffer);
+   handleInterrupt21(0x1,buffer);
+
+   
 
    while (1);
 }
@@ -255,6 +257,7 @@ int findIndexDirectory(char *name, int root){
    char elemen;
    readSector(dirs, DIRS_SECTOR);
 
+
    for (i = 0; i < MAX_DIRECTORY; i++){
       for (j = 0; j < 16; j++){
          elemen = dirs[(i * 16) + j];
@@ -280,9 +283,14 @@ int findIndexFile(char *name, int root){
    char files[SECTOR_SIZE];
    char elemen;
    readSector(files, FILES_SECTOR);
+   
+
+   
 
    for (i = 0; i < MAX_DIRECTORY; i++){
       for (j = 0; j < 16; j++){
+         printString("debug findIndexFile");
+         printString(files);
          elemen = files[(i * 16) + j];
          if (j == 0 && elemen != root){
             break;
@@ -291,6 +299,8 @@ int findIndexFile(char *name, int root){
                break;
             }
          }
+
+         
       }
 
       if (j == 16){
@@ -344,27 +354,36 @@ int findFile(char *path, char *currentRootFound){
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
    int i, j;
+   int a;//debug var
    char name[16];
    int isFile = 0;
    char currentRoot = parentIndex;
    char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    char fileIndex;
 
+
    i = 0;
    while (!isFile){
+      printString("Mantap Pak");
       for (j = 0; j < 16; j++){
          name[j] = '\0';
       }
-
       j = 0;
-      if (path[i] = '/'){
+
+      if (path[i] == '/'){
          i++;
       }
-      for (; path[i] != '\0' || path[i] != '/'; i++){
-         name[j] = path[i];
-         j++;
-      }
 
+      //Debug program
+      printString("debug 1:");
+      printString(path);
+
+      for (; path[i] != '\0' && path[i] != '/'; i = i + 1){
+         name[j] = path[i];
+         j = j + 1;
+         
+      }
+   
       if (name[i] == '/'){
          currentDirIndex = findIndexDirectory(name, currentRoot);
          if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
@@ -374,6 +393,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
             currentRoot = currentDirIndex;
          }
       }else {
+         printString("debug 2:");
+         printString(name);
+         //printString(path);
          isFile = 1;
       }
    }
@@ -381,8 +403,15 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    fileIndex = findIndexFile(name, currentRoot);
    *result = INSUFFICIENT_DIR_ENTRIES;
    if (fileIndex != -1){
+      printString("debug 3:");
+      printString(name);
       *result = 0;
+      //printString(fileIndex);
       readSector(buffer, fileIndex);
+      printString("debug buffer");
+      printString(buffer);
+      printString("debug 4:");
+      printString(name);
    }
 }
 
@@ -524,18 +553,28 @@ void executeProgram(char *path, int segment, int *result, char parentIndex) {
    //kamus
    char buffer[MAX_SECTORS*SECTOR_SIZE];   //diambahin buat jaga-jaga nggak semua sektor buffer ke copy
    int i;
+   
 
    //algoritma
    //buka file
+   //printString("Mantap Pak");
    readFile(buffer, path, result, parentIndex);
+   printString(buffer);
+
 
    //jika pembacaan file sukses
    if (*result == SUCCESS){
       //traversal setiap byte
+      printString("debug 5:");
+      printString(path);
       for (i = 0; i < MAX_SECTORS*SECTOR_SIZE; i++){
          putInMemory(segment, i, buffer[i]);
       }
+
+      printString("debug 6:");
+      printString(path);
       //menjalankan program yang di memori
+
       launchProgram(segment);
       //printString("Selesai");                //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
       //readFile(buffer, "key.txt", success);  //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
