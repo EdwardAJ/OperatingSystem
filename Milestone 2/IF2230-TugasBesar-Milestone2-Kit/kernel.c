@@ -30,7 +30,7 @@ void readSector(char *buffer, int sector);
 void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *path, int *result, char parentIndex)
 void clear(char *buffer, int length);
-void writeFile(char *buffer, char *filename, int *sectors);
+void writeFile(char *buffer, char* path, int* sectors, char parentIndex);
 void executeProgram(char *filename, int segment, int *success);
 void clearScreen(int _lines);
 void drawLogo(char *_logo, int _length);
@@ -380,22 +380,24 @@ void clear(char *buffer, int length) {
    }
 }
 
-//implementasi writeFile (copas)
+//implementasi writeFile
 void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
-   //Milestone 2 variables
+   //Variables
    int i, j, countName, sectorCount, idxFileKosong, idxParentFile;
    char dirName[MAX_FILENAME];
    char map[SECTOR_SIZE];
    char dirs[SECTOR_SIZE];
    char files[SECTOR_SIZE];
+   int sectors[SECTOR_SIZE];
    char NamaFile[15];
    int daftarSektorKosong[16];
 
-   readSector(files, MAP_SECTOR);
-   readSector(dirs, DIR_SECTOR);
-   readSector(map, DIR_SECTOR);
+   readSector(sectors, SECTORS_SECTOR);
+   readSector(files, FILES_SECTOR);
+   readSector(dirs, DIRS_SECTOR);
+   readSector(map, MAP_SECTOR);
 
-   //Dapatkan nama direktori awal
+   /* //Dapatkan nama direktori awal
    for (i = 0; path[i] != '/'; ++i){
       dirName[i] = path[i];
    }
@@ -417,20 +419,18 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    //Jika mau write ke root
    if (i == 0){
       continue;
+   } */
+
+   for (i = 0; i < 16; ++i){
+      daftarSektorKosong[i] = -1;
    }
 
    //Cek apakah jumlah sektor kosong cukup untuk write file
    for (i = 0, sectorCount = 0; i < SECTOR_SIZE && sectorCount < *sectors; ++i){
       if (map[i] == EMPTY){
+         daftarSektorKosong[sectorCount] = i;
          ++sectorCount;
-      }else{
-         sectorCount = 0;
       }
-   }
-
-   //Set daftarSektor ke -1 semua
-   for (i = 0; i < 16; ++i){
-      daftarSektorKosong[i] = -1;
    }
 
    //Jika sectorCount == sector yang diperlukan
@@ -442,34 +442,32 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             break;
          }
       }
-
-      for (i = 0; i < SECTOR_SIZE; i + MAX_DIRECTORY){
-         if (dirs[i+1] == '\0'){
-            found = 1;
-            idxDirKosong = i;
-            break;
-         }
-      }
-
+      //Jika terdapat entri kosong pada files
       if (i < SECTOR_SIZE){
          //Cari index file
          j = findFile(path, &idxParentFile);
+
          //Tulis nama file ke files
          if (j != -1){
             files[idxFileKosong*16] = idxParentFile;
+
             for (i = 1; i < 16; i++){
                files[idxFileKosong*16 + i] =  NamaFile[i-1];
+            }
+
+            //Clear, kemudian masukkan buffer ke sektor yang ditandai kosong
+            for (i = 0; daftarSektorKosong[i] != -1; ++i){
+               clear(daftarSektorKosong[i]*SECTOR_SIZE, SECTOR_SIZE);
+               writeSector(buffer[i*SECTOR_SIZE], daftarSektorKosong[i]);
+               
+               sectors[idxFileKosong*16+i] = daftarSektorKosong[i];
+               map[daftarSektorKosong[i]] = USED;
             }
          }else{
             *sectors = -2;
          }
       }else{
          *sectors = -3;
-      }
-      //Clear semua sektor yang tercatat "kosong" di daftarSektorKosong
-      for (i = 0; daftarSektorKosong[i] != -1; ++i){
-         clear(daftarSektorKosong*SECTOR_SIZE, SECTOR_SIZE);
-         writeSector();
       }
       
    }else{
