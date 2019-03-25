@@ -404,10 +404,8 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    int fileIndex;
 
-
-
    readSector(sectors, SECTORS_SECTOR);
-   //readSector(files, FILES_SECTOR);
+
    i = 0;
    while (!isFile){
       printString("Mantap Pak");
@@ -441,7 +439,6 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       }else {
          printString("debug 2:");
          printString(name);
-         //printString(path);
          isFile = 1;
       }
    }
@@ -454,26 +451,19 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       *result = 0;
 
       //Mulai baca buffer dari sector
-
-      /*
+      
       k = 0;
-      for (j = fileIndex-1 ; k < MAX_SECTORS && (sectors[j] != EMPTY) ; j++ ) {
-         readSector(buffer + (k*SECTOR_SIZE), sectors[j]);
+      for (j = fileIndex ; k < MAX_SECTORS && (sectors[j] != EMPTY) ; j++ ) {
+         readSector(buffer + (k*SECTOR_SIZE), sectors[j*16]);
          k = k + 1;
       }
-
-
-      if (k == MAX_SECTORS) {
-         printString("REST");
-      }
       
-      */
+      
       if (fileIndex == 1) {
          printString("TEST");
       }
    
-      readSector(buffer,11);
-      //readSector(buffer, fileIndex);
+
       printString("debug buffer");
       printString(buffer);
       printString("debug 4:");
@@ -620,27 +610,14 @@ void executeProgram(char *path, int segment, int *result, char parentIndex) {
    char buffer[MAX_SECTORS*SECTOR_SIZE];   //diambahin buat jaga-jaga nggak semua sektor buffer ke copy
    int i;
    
-
-   //algoritma
-   //buka file
-   //printString("Mantap Pak");
    readFile(buffer, path, result, parentIndex);
-   printString(buffer);
-
-
+   
    //jika pembacaan file sukses
    if (*result == SUCCESS){
-      //traversal setiap byte
-      printString("debug 5:");
-      printString(path);
       for (i = 0; i < MAX_SECTORS*SECTOR_SIZE; i++){
          putInMemory(segment, i, buffer[i]);
       }
-
-      printString("debug 6:");
-      printString(path);
       //menjalankan program yang di memori
-
       launchProgram(segment);
       //printString("Selesai");                //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
       //readFile(buffer, "key.txt", success);  //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
