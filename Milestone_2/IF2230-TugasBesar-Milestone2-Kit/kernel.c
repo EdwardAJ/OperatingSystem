@@ -258,6 +258,7 @@ int findIndexDirectory(char *name, int root){
    readSector(dirs, DIRS_SECTOR);
 
 
+
    for (i = 0; i < MAX_DIRECTORY; i++){
       for (j = 0; j < 16; j++){
          elemen = dirs[(i * 16) + j];
@@ -282,25 +283,32 @@ int findIndexFile(char *name, int root){
    int i, j;
    char files[SECTOR_SIZE];
    char elemen;
+
    readSector(files, FILES_SECTOR);
    
-
+   //printString(files);
+   //printString("namafile");
+   //printString(name);
+   //printString(name);
    
 
    for (i = 0; i < MAX_DIRECTORY; i++){
       for (j = 0; j < 16; j++){
-         printString("debug findIndexFile");
-         printString(files);
+         
+         //printString("debug findIndexFile");
+         //printString(files);
+         //printString(name);
          elemen = files[(i * 16) + j];
          if (j == 0 && elemen != root){
             break;
          }else {
+            
             if (elemen != name[j - 1]){
                break;
             }
          }
 
-         
+         //printString("testing");
       }
 
       if (j == 16){
@@ -353,15 +361,22 @@ int findFile(char *path, char *currentRootFound){
 
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
-   int i, j;
+   int i, j, k;
+   char elemen;
+   int check = -1;
    int a;//debug var
    char name[16];
+   char sectors[SECTOR_SIZE];
+   char files[SECTOR_SIZE];
    int isFile = 0;
    char currentRoot = parentIndex;
    char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    char fileIndex;
 
 
+
+   readSector(sectors, SECTORS_SECTOR);
+   //readSector(files, FILES_SECTOR);
    i = 0;
    while (!isFile){
       printString("Mantap Pak");
@@ -401,13 +416,38 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    }
 
    fileIndex = findIndexFile(name, currentRoot);
+
+
    *result = INSUFFICIENT_DIR_ENTRIES;
    if (fileIndex != -1){
       printString("debug 3:");
       printString(name);
       *result = 0;
+
+      /*
       //printString(fileIndex);
-      readSector(buffer, fileIndex);
+       for (j = fileIndex + MAX_FILENAME;(k < MAX_SECTORS) && (dir[j] != 0); j = j + 1){
+         readSector(buffer + (k * SECTOR_SIZE), dir[j]);
+         //interrupt(0x10, 0xE00 + dir[j]+48, 0, 0, 0);
+         printString(buffer);
+
+         k = k + 1;
+      }
+      */
+      //Mulai baca buffer dari sector
+      
+
+      k = 0;
+
+      //Debug 1 : sectors[j] isinya EMPTY
+      for (j = fileIndex ; k < MAX_SECTORS && (sectors[j] != EMPTY) ; j++ ) {
+         readSector(buffer + (k*SECTOR_SIZE), sectors[j]);
+         k = k + 1;
+         printString("test");
+         //printString(buffer);
+      }
+
+      //readSector(buffer, fileIndex);
       printString("debug buffer");
       printString(buffer);
       printString("debug 4:");
@@ -482,7 +522,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             }
 
             //Dapatkan nama direktori awal
-            for (; path[i] != '/' || path[i] != '\0'; ++i){
+            for (; path[i] != '/' && path[i] != '\0'; ++i){
                dirName[j] = path[i];
                j = j + 1;
             }
