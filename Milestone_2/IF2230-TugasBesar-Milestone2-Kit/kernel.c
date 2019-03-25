@@ -67,7 +67,7 @@ int main() {
    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
    //handleInterrupt21(0x4, buffer, "key.txt", &success);
    //andleInterrupt21(0x0, buffer);
-   handleInterrupt21(0x1,buffer);
+   //handleInterrupt21(0x1,buffer);
 
    
 
@@ -279,44 +279,75 @@ int findIndexDirectory(char *name, int root){
    return -1;
 }
 
-int findIndexFile(char *name, int root){
+int findIndexFile(char *name, char root){
    int i, j;
+   int found;
+   int idx;
+   int hsl;
    char files[SECTOR_SIZE];
    char elemen;
 
    readSector(files, FILES_SECTOR);
-   
    //printString(files);
-   //printString("namafile");
-   //printString(name);
-   //printString(name);
-   
+   hsl = -1;
 
-   for (i = 0; i < MAX_DIRECTORY; i++){
-      for (j = 0; j < 16; j++){
-         
-         //printString("debug findIndexFile");
-         //printString(files);
-         //printString(name);
-         elemen = files[(i * 16) + j];
-         if (j == 0 && elemen != root){
-            break;
+   
+   for (i = 0; i < 32; i++){
+      for (j = 0; j < MAX_FILES; j++){
+         elemen = files[(i*16)+ j];
+         if (j == 0){
+            if (elemen != root) {
+               break;
+            }
          }else {
-            
             if (elemen != name[j - 1]){
                break;
             }
          }
-
-         //printString("testing");
       }
 
       if (j == 16){
-         return i;
+         hsl = i;
+         break;
       }
    }
 
-   return -1;
+   return hsl;
+   
+   /*
+   found = 1;
+   i = 0;
+   j = 0;
+
+   while (i < 32 && found == 1) {
+      while (j < MAX_FILES && found == 1) {
+         elemen = files[(i*16)+ j];
+         if (j == 0){
+            if (elemen != root) {
+               found = 0;
+               idx = 0;
+            }
+         }else {
+            if (elemen != name[j - 1]){
+               found = 0;
+               //printString("Test");
+               idx = j;
+            }
+         }
+         j++;
+      }
+      found = 1;
+      if (idx == 16){
+         hsl = i;
+         found =  0;
+      }
+      
+      i++;
+   }
+
+   return hsl;
+
+   */
 }
 
 int findFile(char *path, char *currentRootFound){
@@ -361,17 +392,17 @@ int findFile(char *path, char *currentRootFound){
 
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
-   int i, j, k;
+   int i, j;
    char elemen;
    int check = -1;
-   int a;//debug var
+   char k;
    char name[16];
    char sectors[SECTOR_SIZE];
    char files[SECTOR_SIZE];
    int isFile = 0;
-   char currentRoot = parentIndex;
-   char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
-   char fileIndex;
+   int currentRoot = parentIndex;
+   int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+   int fileIndex;
 
 
 
@@ -416,37 +447,32 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    }
 
    fileIndex = findIndexFile(name, currentRoot);
-
-
    *result = INSUFFICIENT_DIR_ENTRIES;
    if (fileIndex != -1){
       printString("debug 3:");
       printString(name);
       *result = 0;
 
-      /*
-      //printString(fileIndex);
-       for (j = fileIndex + MAX_FILENAME;(k < MAX_SECTORS) && (dir[j] != 0); j = j + 1){
-         readSector(buffer + (k * SECTOR_SIZE), dir[j]);
-         //interrupt(0x10, 0xE00 + dir[j]+48, 0, 0, 0);
-         printString(buffer);
-
-         k = k + 1;
-      }
-      */
       //Mulai baca buffer dari sector
-      
 
+      /*
       k = 0;
-
-      //Debug 1 : sectors[j] isinya EMPTY
-      for (j = fileIndex ; k < MAX_SECTORS && (sectors[j] != EMPTY) ; j++ ) {
+      for (j = fileIndex-1 ; k < MAX_SECTORS && (sectors[j] != EMPTY) ; j++ ) {
          readSector(buffer + (k*SECTOR_SIZE), sectors[j]);
          k = k + 1;
-         printString("test");
-         //printString(buffer);
       }
 
+
+      if (k == MAX_SECTORS) {
+         printString("REST");
+      }
+      
+      */
+      if (fileIndex == 1) {
+         printString("TEST");
+      }
+   
+      readSector(buffer,11);
       //readSector(buffer, fileIndex);
       printString("debug buffer");
       printString(buffer);
