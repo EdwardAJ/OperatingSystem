@@ -184,10 +184,12 @@ void printString(char* string){
       interrupt(0x10, 0xE00 + string[i], 0, 0, 0);
       i = i + 1;
    }
+
+
    //Pindahkan kursor ke baris bawah
-   interrupt(0x10, 0xE00 + '\n', 0, 0, 0);
+   //interrupt(0x10, 0xE00 + '\n', 0, 0, 0);
    //Pindahkan kursor ke awal baris
-   interrupt(0x10, 0xE00 + '\r', 0, 0, 0);
+   //interrupt(0x10, 0xE00 + '\r', 0, 0, 0);
 
 }
 
@@ -408,7 +410,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 
    i = 0;
    while (!isFile){
-      printString("Mantap Pak");
+      //printString("Mantap Pak");
       for (j = 0; j < 16; j++){
          name[j] = '\0';
       }
@@ -419,8 +421,8 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       }
 
       //Debug program
-      printString("debug 1:");
-      printString(path);
+      //printString("debug 1:");
+      //printString(path);
 
       for (; path[i] != '\0' && path[i] != '/'; i = i + 1){
          name[j] = path[i];
@@ -437,8 +439,8 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
             currentRoot = currentDirIndex;
          }
       }else {
-         printString("debug 2:");
-         printString(name);
+         //printString("debug 2:");
+         //printString(name);
          isFile = 1;
       }
    }
@@ -446,8 +448,8 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    fileIndex = findIndexFile(name, currentRoot);
    *result = INSUFFICIENT_DIR_ENTRIES;
    if (fileIndex != -1){
-      printString("debug 3:");
-      printString(name);
+      //printString("debug 3:");
+      //printString(name);
       *result = 0;
 
       //Mulai baca buffer dari sector
@@ -460,14 +462,14 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       
       
       if (fileIndex == 1) {
-         printString("TEST");
+         //printString("TEST");
       }
    
 
-      printString("debug buffer");
-      printString(buffer);
-      printString("debug 4:");
-      printString(name);
+      //printString("debug buffer");
+      //printString(buffer);
+      //printString("debug 4:");
+      //printString(name);
    }
 }
 
@@ -611,7 +613,7 @@ void executeProgram(char *path, int segment, int *result, char parentIndex) {
    int i;
    
    readFile(buffer, path, result, parentIndex);
-   
+
    //jika pembacaan file sukses
    if (*result == SUCCESS){
       for (i = 0; i < MAX_SECTORS*SECTOR_SIZE; i++){
@@ -671,7 +673,7 @@ void makeDirectory(char *path, int *result, char parentIndex) {
          }
 
          //Traversal dari i hingga ditemukan '/0' atau '/'.
-         for (; path[i] != '\0' || path[i] != '/'; i++){
+         for (; path[i] != '\0' && path[i] != '/'; i++){
             name[j] = path[i];
             j++;
          }
@@ -759,7 +761,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
       if (path[i] = '/'){
          i++;
       }
-      for (; path[i] != '\0' || path[i] != '/'; i++){
+      for (; path[i] != '\0' && path[i] != '/'; i++){
          name[j] = path[i];
          j++;
       }

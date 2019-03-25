@@ -10,6 +10,10 @@ ld86 -o kernel -d kernel.o kernel_asm.o
 bcc -ansi -c -o shell.o shell.c
 as86 lib.asm -o lib_asm.o
 ld86 -o shell -d shell.o lib_asm.o
-./loadFile shell 
+./loadFile shell
+bcc -ansi -c -o hello.o hello.c
+as86 lib.asm -o lib_asm.o
+ld86 -o hello -d hello.o lib_asm.o
+./loadFile hello
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 bochs -f opsys.bxrc
