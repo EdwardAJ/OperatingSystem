@@ -22,6 +22,7 @@ void launchShell() {
 		runprog[i] == '\0';
 	}
 
+	//implementasi dari execute program
 	if (buffer[0] == '.' && buffer[1] == '/') {
 		i = 2;
 		j = 0;
@@ -38,6 +39,11 @@ void launchShell() {
 			interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
 			interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
 		}
+	}
+
+	//implementasi dari cd
+	if (buffer[0] == 'c' && buffer[1] == 'd') {
+		i = 3;
 	}
 		
 }

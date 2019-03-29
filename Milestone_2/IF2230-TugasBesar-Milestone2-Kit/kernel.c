@@ -194,22 +194,28 @@ void printString(char* string){
 //Implementasi readString (TESTED)
 void readString(char* string){
    int i = 0;
+   int cur_pos = 1;
    //membaca karakter pertama dari keyboard
    char currChar = interrupt(0x16, 0, 0, 0, 0);
    //looping selama currChar != \r
    while (currChar != '\r'){
       //jika currChar == backspace
       if (currChar == '\b'){
-         interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
-         interrupt(0x10, 0xE00 + '\0', 0, 0, 0);
-         interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
-         i = i-1;
+         if (cur_pos > 1) {
+            printString("a");
+            interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
+            interrupt(0x10, 0xE00 + '\0', 0, 0, 0);
+            interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
+            i = i-1;
+            cur_pos--;
+         }
       }
       //jika currChar yg lain
       else{
          interrupt(0x10, 0xE00 + currChar, 0, 0, 0);
          string[i] = currChar;
          i = i+1;
+         cur_pos++;
       }
       //baca currChar lagi
       currChar = interrupt(0x16, 0, 0, 0, 0);
