@@ -15,9 +15,13 @@ as86 lib.asm -o lib_asm.o
 ld86 -o echo -d  echo.o lib_asm.o
 bcc -ansi -c -o mkdir.o mkdir.c
 as86 lib.asm -o lib_asm.o
-ld86 -o mkdir -d  mkdir.o lib_asm.o
+ld86 -o mkdir -d mkdir.o lib_asm.o
+bcc -ansi -c -o ls.o ls.c
+as86 lib.asm -o lib_asm.o
+ld86 -o ls -d ls.o lib_asm.o
 ./loadFile shell
 ./loadFile echo
 ./loadFile mkdir
+./loadFile ls
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 bochs -f opsys.bxrc

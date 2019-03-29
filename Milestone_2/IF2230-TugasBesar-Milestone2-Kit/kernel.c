@@ -592,19 +592,20 @@ void makeDirectory(char *path, int *result, char parentIndex) {
    char name[16];
    char dirs[SECTOR_SIZE];
    int isDir;
-   char currentRoot = parentIndex;
+   int currentRoot = parentIndex;
    int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    int fileIndex;
 
    //Cek apakah terdapat entry kosong atau tidak pada sektor dirs.
    isDir = 0;
    found = 0;
+   idxDirKosong = 0;
    readSector(dirs, DIRS_SECTOR);
-   for (i = 0; i < SECTOR_SIZE; i + MAX_DIRECTORY){
+
+   for (i = 0; i < SECTOR_SIZE && found!= 1; i = i + MAX_DIRECTORY){
       if (dirs[i+1] == '\0'){
          found = 1;
          idxDirKosong = i;
-         break;
       }
    }
 
@@ -615,6 +616,7 @@ void makeDirectory(char *path, int *result, char parentIndex) {
    }
    //Kalau ditemukan entry yang kosong.
    else {
+
       i = 0;
       while (!isDir){
 
@@ -622,18 +624,20 @@ void makeDirectory(char *path, int *result, char parentIndex) {
          for (j = 0; j < MAX_DIRECTORY; j++){
             name[j] = '\0';
          }
-         j = 0;
-
+         
          //Jika variabel i sudah mencapai '/'.
-         if (path[i] = '/'){
+         if (path[i] == '/'){
             i++;
          }
 
          //Traversal dari i hingga ditemukan '/0' atau '/'.
+         j = 0;
          for (; path[i] != '\0' && path[i] != '/'; i++){
             name[j] = path[i];
             j++;
          }
+
+         //printString(name);
 
          //Jika path masih berupa dir, belum file.
          if (name[i] == '/'){
@@ -652,8 +656,10 @@ void makeDirectory(char *path, int *result, char parentIndex) {
          }
       }
       //Cari file.
-      fileIndex = findIndexFile(name, currentRoot);
+
+      fileIndex = findIndexDirectory(name, currentRoot);
       *result = INSUFFICIENT_DIR_ENTRIES;
+
 
       //Kalau file sudah ada. Maka make directory tidak jadi dilaksanakan
       if (fileIndex != -1){
@@ -661,13 +667,13 @@ void makeDirectory(char *path, int *result, char parentIndex) {
          return;
       //Kalau belum ada file.
       } else {
-         //Tulis indeks dari direktori pada byte indeks parent (indeks 0)
-         dirs[idxDirKosong] = currentRoot;
 
+         //Tulis indeks dari direktori pada byte indeks parent (indeks 0)
+         dirs[idxDirKosong*16] = currentRoot;
          //Tulis isi dari name pada byte setelah indeks parent pada dirs
          j = 0;
-         for (i = 1; name[j] != '\0' ;i++) {
-            dirs[idxDirKosong + i] = name[j];
+         for (i = 1; name[j] != '\0' && i < 16 ;i++) {
+            dirs[idxDirKosong*16 + i] = name[j];
             j++;
          } 
          writeSector(dirs,DIRS_SECTOR);

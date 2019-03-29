@@ -4,12 +4,12 @@ int main() {
    char buffer[100];
    char curdir;
    char argc;
-   char argv[4][16];
+   char argv[10][16];
 
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0, 0);
    interrupt(0x21, 0x22, &argc, 0, 0);
-   interrupt(0x21, 0x23, i, argv[0], 0);
+   interrupt(0x21, 0x23, 0, argv[0], 0);
 
    //Print isi argumen
    interrupt(0x21, 0x0, argv[0], 0x0 , 0x0);
