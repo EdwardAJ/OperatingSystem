@@ -10,10 +10,14 @@ ld86 -o kernel -d kernel.o kernel_asm.o
 bcc -ansi -c -o shell.o shell.c
 as86 lib.asm -o lib_asm.o
 ld86 -o shell -d shell.o lib_asm.o
-./loadFile shell
-bcc -ansi -c -o hello.o hello.c
+bcc -ansi -c -o echo.o echo.c
 as86 lib.asm -o lib_asm.o
-ld86 -o hello -d hello.o lib_asm.o
-./loadFile hello
+ld86 -o echo -d  echo.o lib_asm.o
+bcc -ansi -c -o mkdir.o mkdir.c
+as86 lib.asm -o lib_asm.o
+ld86 -o mkdir -d  mkdir.o lib_asm.o
+./loadFile shell
+./loadFile echo
+./loadFile mkdir
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 bochs -f opsys.bxrc

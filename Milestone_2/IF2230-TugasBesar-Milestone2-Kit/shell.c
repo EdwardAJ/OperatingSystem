@@ -11,8 +11,13 @@ int main () {
 }
 
 void launchShell() {
+	char curdir;
+	char argc;
+	char *argv[512];
 	int i,j;
 	int success;
+
+	curdir = 0xFF;
 	//interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
 	interrupt(0x21, 0x0 , "$" , 0x0 , 0x0);
 	interrupt(0x21, 0x0 , " " , 0x0 , 0x0);
@@ -22,7 +27,7 @@ void launchShell() {
 		runprog[i] == '\0';
 	}
 
-	//implementasi dari execute program
+	//implementasi dari execute program (belum memakai argumen)
 	if (buffer[0] == '.' && buffer[1] == '/') {
 		i = 2;
 		j = 0;
@@ -42,9 +47,59 @@ void launchShell() {
 	}
 
 	//implementasi dari cd
-	if (buffer[0] == 'c' && buffer[1] == 'd') {
+	if (buffer[0] == 'c' && buffer[1] == 'd'){
 		i = 3;
+		j = 0;
+		while (buffer[i] != '\0') {
+			runprog[j] = buffer[i];
+			i++;
+			j++;
+		}
+
+	} 
+
+	//panggil echo
+	if (buffer[0] == 'e' && buffer[1] == 'c' && buffer[2] == 'h' && buffer[3] == 'o') {
+		argc = 1;
+		i = 5;
+		j = 0;
+		while (buffer[i] != '\0') {
+			argv[0][j] = buffer[i];
+			i++;
+			j++;
+		}
+		argv[0][j] = '\0';
+
+		//setArgs
+		interrupt(0x21, 0x20, curdir, argc, argv);
+
+		//interrupt(0x21, 0x0, "ABC", 0x0, 0x0);
+		//execute Program
+		interrupt(0x21, 0xFF << 8 | 0x6, "echo" , 0x2000, &success);
 	}
-		
+
+	//panggil mkdir
+	if (buffer[0] == 'm' && buffer[1] == 'k' && buffer[2] == 'd' && buffer[3] == 'i' && buffer[4] == 'r') {
+		argc = 1;
+		i = 6;
+		j = 0;
+	}
+
+	while (buffer[i] != '\0') {
+		argv[0][j] = buffer[i];
+		i++;
+		j++;
+	}
+	
+	argv[0][j] = '\0';
+
+	//setArgs
+	interrupt(0x21, 0x20, curdir, argc, argv);
+
+	//interrupt(0x21, 0x0, "ABC", 0x0, 0x0);
+	//execute Program
+	interrupt(0x21, 0xFF << 8 | 0x6, "mkdir" , 0x2000, &success);
+
+
 }
-	//readString(buffer);
+	
