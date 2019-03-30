@@ -1,10 +1,20 @@
 char buffer[512];
+char path[512];
+char curdir;
 char runprog[512];
 int result;
 void launchShell();
 
 int main () {
+	int i;
 	int input_switch = 0;
+	curdir = 0xFF;
+
+	//Initialize path
+	for (i = 0 ; i < 512 ; i++) {
+		path[i] = '\0';
+	}
+
 	while (input_switch == 0) {
 		launchShell();
 	}
@@ -12,20 +22,13 @@ int main () {
 
 void launchShell() {
 	int idx;
-	char curdir;
 	char argc;
 	int i,j;
 	int success;
 	char *argv[512];
 	
-
-	curdir = 0xFF;
 	//interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
-	/*
-	for (i = 0 ; i < 512 ; i++) {
-		buffer[i] = '\0';
-	}
-	*/
+	
 	interrupt(0x21, 0x0 , "$" , 0x0 , 0x0);
 	interrupt(0x21, 0x0 , " " , 0x0 , 0x0);
 	interrupt(0x21, 0x1, buffer, 0x0, 0x0);
@@ -114,8 +117,10 @@ void launchShell() {
 		argv[0][j] = '\0';
 		//setArgs
 		interrupt(0x21, 0x20, curdir, argc, argv);
+
 		//execute Program
 		interrupt(0x21, 0xFF << 8 | 0x6, "mkdir" , 0x2000, &success);
+
 	}
 
 	//panggil ls
@@ -132,6 +137,14 @@ void launchShell() {
 		interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+	}
+
+	//Clear argv
+
+	for (i = 0 ; i < 512 ; i++) {
+		for (j = 0 ; j < 512 ; j++) {
+			argv[i][j] = '\0';
+		}
 	}
 
 }

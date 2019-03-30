@@ -601,9 +601,8 @@ void makeDirectory(char *path, int *result, char parentIndex) {
    found = 0;
    idxDirKosong = 0;
    readSector(dirs, DIRS_SECTOR);
-
-   for (i = 0; i < SECTOR_SIZE && found!= 1; i = i + MAX_DIRECTORY){
-      if (dirs[i+1] == '\0'){
+   for (i = 0; (i*MAX_FILES < SECTOR_SIZE) && found!= 1; i++){
+      if (dirs[i*MAX_FILES+1] == '\0'){
          found = 1;
          idxDirKosong = i;
       }
@@ -616,10 +615,8 @@ void makeDirectory(char *path, int *result, char parentIndex) {
    }
    //Kalau ditemukan entry yang kosong.
    else {
-
       i = 0;
       while (!isDir){
-
          //Inisialisasi name dengan null terminated sepanjang MAX_DIRECTORY (16).
          for (j = 0; j < MAX_DIRECTORY; j++){
             name[j] = '\0';
@@ -636,8 +633,6 @@ void makeDirectory(char *path, int *result, char parentIndex) {
             name[j] = path[i];
             j++;
          }
-
-         //printString(name);
 
          //Jika path masih berupa dir, belum file.
          if (name[i] == '/'){
@@ -659,8 +654,6 @@ void makeDirectory(char *path, int *result, char parentIndex) {
 
       fileIndex = findIndexDirectory(name, currentRoot);
       *result = INSUFFICIENT_DIR_ENTRIES;
-
-
       //Kalau file sudah ada. Maka make directory tidak jadi dilaksanakan
       if (fileIndex != -1){
          *result = ALREADY_EXISTS;
