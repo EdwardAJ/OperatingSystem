@@ -69,7 +69,7 @@ int main() {
    //printString("sukses");
    //interrupt(0x21, 0x0 , "string" , 0x0 , 0x0);
 
-   
+   //readFile()
    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
    //handleInterrupt21(0x4, buffer, "key.txt", &success);
    //andleInterrupt21(0x0, buffer);
@@ -433,7 +433,8 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
             readSector(buffer + (j*SECTOR_SIZE), sectors[fileIndex*MAX_FILES + i]);
             j++;
       }
-      //printString(buffer);
+   } else if (fileIndex == -1) {
+      printString("TIdak ada file\n");
    }
 }
 

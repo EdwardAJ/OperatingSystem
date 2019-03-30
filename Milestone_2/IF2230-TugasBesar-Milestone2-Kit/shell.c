@@ -14,17 +14,14 @@ int main () {
 	for (i = 0 ; i < 512 ; i++) {
 		path[i] = '\0';
 	}
-
-	while (input_switch == 0) {
-		launchShell();
-	}
+	launchShell();
 }
 
 void launchShell() {
 	int idx;
 	char argc;
 	int i,j;
-	int success = 0;
+	int success = -1;
 	char *argv[512];
 	
 	//interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
@@ -137,6 +134,7 @@ void launchShell() {
 		//jumlah argumen  = 1 atau 2
 		
 		i = 4;
+		argc = 1;
 		j = 0;
 	
 		while (buffer[i] != '\0' && buffer[i] != ' ') {
@@ -151,12 +149,10 @@ void launchShell() {
 			argc = 2;
 			i++;
 			if (buffer[i] == '-' && buffer[i+1] == 'w'){
-				argv[1][0] = buffer[i];
-				argv[1][1] = buffer[i+1];
+				argv[1][0] = '-';
+				argv[1][1] = 'w';
 				argv[1][2] = '\0';
 			}
-		} else {
-			argc = 1;
 		}
 		//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
 		//interrupt(0x21, 0x00, "\n",0x00, 0x00);
@@ -164,20 +160,14 @@ void launchShell() {
 	
 		//setArgs
 		interrupt(0x21, 0x20, curdir, argc, argv);
-		if (argc == 1)
-			//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
 
+		//interrupt(0x21, 0x00, "", 0x00 ,0x00);
 		//execute Program
 		interrupt(0x21, 0xFF << 8 | 0x6, "cat" , 0x2000, &success);
-
 	}
 
 
-	if (success != 0) {
-		interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
-		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
-		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
-	}
+	
 
 	//Clear argv
 
@@ -187,7 +177,13 @@ void launchShell() {
 		}
 	}
 
+	if (success != 0) {
+		interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
+		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
+		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+	}
 
+	interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 
 }
 	
