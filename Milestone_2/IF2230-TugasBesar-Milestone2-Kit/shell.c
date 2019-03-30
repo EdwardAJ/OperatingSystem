@@ -46,7 +46,7 @@ void launchShell() {
 		}
 	}
 
-	//implementasi dari cd
+	//implementasi dari cd, (..) untuk kembali
 	if (buffer[0] == 'c' && buffer[1] == 'd'){
 		i = 3;
 		j = 0;
@@ -55,6 +55,10 @@ void launchShell() {
 			i++;
 			j++;
 		}
+
+		//set argc dan argv
+
+		//execute changeDirectory program
 
 	} 
 
