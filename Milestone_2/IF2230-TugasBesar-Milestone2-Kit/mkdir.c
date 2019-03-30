@@ -13,7 +13,7 @@ int main() {
 
    //Start makedirectory sequence.
    //interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
-   interrupt(0x21, (0xFF << 8) | 0x08, argv[0], &result, 0x00);
+   interrupt(0x21, (curdir << 8) | 0x08, argv[0], &result, 0x00);
    /*
    interrupt(0x21, (0xFF << 8) | 0x08, "2", &result, 0x00);
    interrupt(0x21, (0xFF << 8) | 0x08, "3", &result, 0x00);

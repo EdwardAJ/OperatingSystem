@@ -283,7 +283,7 @@ int findIndexDirectory(char *name, int root){
       }
 
       if (j == 16){
-         hsl = i;
+         hsl = i; 
          break;
       }
    }
@@ -374,12 +374,13 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    char k;
    char name[16];
    char sectors[SECTOR_SIZE];
+   char dirs[SECTOR_SIZE];
    char files[SECTOR_SIZE];
    int isFile = 0;
    int currentRoot = parentIndex;
    int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    int fileIndex;
-
+   readSector(dirs, DIRS_SECTOR);
    readSector(sectors, SECTORS_SECTOR);
 
    i = 0;
@@ -411,7 +412,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
             return;
          }else {
             //Update "parent"
-            currentRoot = currentDirIndex;
+            currentRoot = dirs[currentDirIndex*16];
          }
       }else {
          //It's time to read file!
@@ -421,13 +422,12 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    //call findIndexFile (search for FILE_INDEX)
    fileIndex = findIndexFile(name, currentRoot);
    *result = INSUFFICIENT_DIR_ENTRIES;
-
    //IF fileIndex is not error.
    if (fileIndex != -1){
       *result = 0;
       //Start reading buffer from sector
       j = 0;
-      
+   
       for (i = 0 ; j < MAX_SECTORS && (sectors[fileIndex*MAX_FILES + i] != EMPTY) ; i++ ) {
             //read another sector in that INDEX (if exists)
             readSector(buffer + (j*SECTOR_SIZE), sectors[fileIndex*MAX_FILES + i]);
@@ -456,10 +456,12 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    char files[SECTOR_SIZE];
    char sectorBuffer[SECTOR_SIZE];
    int fileIndex;
-   char currentRoot = parentIndex;
+   int currentRoot = parentIndex;
    int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
   
-   readSector(map, DIRS_SECTOR);
+   readSector(map, MAP_SECTOR);
+   readSector(dirs, DIRS_SECTOR);
+   readSector(files, FILES_SECTOR);
 
    //Cek apakah jumlah sektor kosong pada MAP cukup untuk write file (Step 2)
    sectorCount = 0;
@@ -472,15 +474,25 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    //Kalau jumlah sektor cukup
    if (sectorCount == *sectors){
       //Cek apakah masih tersisa entri kosong pada sektor files (Step 3)
+      
+      /*
       for (i = 1; i < SECTOR_SIZE; i + MAX_FILES){
          if (files[i] == '\0'){
             idxFileKosong = mod(i-1, MAX_FILES);
             break;
          }
       }
+      */
+
+      for (i = 0; (i*MAX_FILES < SECTOR_SIZE) && found!= 1; i++){
+         if (files[i*MAX_FILES+1] == '\0'){
+            found = 1;
+            idxFileKosong = i;
+         }
+      }
 
       //Kalau masih terdapat entri yang kosong
-      if (i < SECTOR_SIZE){
+      if (found == 1){
          isDir = 0;
          i = 0;
          //Mulai pencarian directory
@@ -509,7 +521,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
                   *sectors = INSUFFICIENT_DIR_ENTRIES; //Not Found (Step 4,5)
                   return;
                } else {
-                  currentRoot = currentDirIndex;
+                  currentRoot = dirs[currentDirIndex*MAX_DIRECTORY];
                }
             //Kalau sudah saatnya membaca file.
             } else {
@@ -517,14 +529,15 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             }
          }
 
+         //dirName disini seharusnya menjadi fileName
          fileIndex = findIndexFile(dirName, currentRoot);
          //Kalau tidak ditemukan, Tulis nama file ke files
          if (fileIndex == -1){
-            files[idxFileKosong*MAX_FILES] = idxParentFile;
+            files[idxFileKosong*MAX_FILES] = currentRoot; //idxParentFile;
+            //assign dengan nama
             for (i = 1; i < 16; i++){
                files[idxFileKosong*MAX_FILES + i] =  dirName[i-1];
             }
-
 
             for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i){
                if (map[i] == EMPTY) {
@@ -571,6 +584,7 @@ void executeProgram(char *path, int segment, int *result, char parentIndex) {
    
    readFile(buffer, path, result, parentIndex);
 
+   //printString(buffer);
    //jika pembacaan file sukses
    if (*result == SUCCESS){
       for (i = 0; i < MAX_SECTORS*SECTOR_SIZE; i++){
@@ -642,7 +656,7 @@ void makeDirectory(char *path, int *result, char parentIndex) {
                return;
             } 
             else {
-               currentRoot = currentDirIndex;
+               currentRoot = dirs[currentDirIndex*MAX_DIRECTORY];
             }
 
          //Jika sudah harus membaca file.
@@ -789,6 +803,7 @@ void putArgs (char curdir, char argc, char **argv) {
    writeSector(args, ARGS_SECTOR);
 }
 
+
 void getCurdir (char *curdir) {
    char args[SECTOR_SIZE];
    readSector(args, ARGS_SECTOR);
@@ -823,7 +838,7 @@ void getArgv (char index, char *argv) {
          }
       }
    }
-}
+} 
 
 
 

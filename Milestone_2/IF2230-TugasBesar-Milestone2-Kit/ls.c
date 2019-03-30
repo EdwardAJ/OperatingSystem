@@ -17,7 +17,7 @@ int main() {
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0, 0);
    interrupt(0x21, 0x22, &argc, 0, 0);
-   interrupt(0x21, 0x23, i, argv[0], 0);
+   interrupt(0x21, 0x23, 0, argv[0], 0);
 
 
    for (i = 0 ; i < 32 ; i++) {
