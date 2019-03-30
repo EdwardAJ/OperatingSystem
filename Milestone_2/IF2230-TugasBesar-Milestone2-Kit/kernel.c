@@ -903,6 +903,7 @@ void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex 
       //jika sudah sampai akhir path, berhenti
       if (path[lastNameLen] == '\0'){
          found = 1;
+         *result = parentIndex;
          break;
       }
 
