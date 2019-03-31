@@ -1,6 +1,6 @@
 char buffer[512];
 char path[512];
-char curdir;
+
 char runprog[512];
 int lwfound;
 int result;
@@ -9,12 +9,12 @@ void launchShell();
 int main () {
 	int i;
 	int input_switch = 0;
-	curdir = 0xFF;
-
+	
+	//if (curdir == 0xFF){
+	//	interrupt(0x21, 0x00 , "MANTAB BANG" , 0x00 , 0x00);
+	//}
+	
 	//Initialize path
-	for (i = 0 ; i < 512 ; i++) {
-		path[i] = '\0';
-	}
 	launchShell();
 }
 
@@ -29,6 +29,10 @@ void launchShell() {
 	char buffertemp[10];
 	char buffertemp1[10];
 	char argvtemp[10][10];
+	char curdir;
+
+	//Get current directory
+	interrupt(0x21, 0x21, &curdir, 0, 0);
 	//interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
 	
 	interrupt(0x21, 0x0 , "$" , 0x0 , 0x0);
@@ -41,7 +45,6 @@ void launchShell() {
 		//argvtemp[i] = '\0';
 	}
 
-	
 	for (i = 0 ; i < 10 ; i++) {
 		for (k = 0 ; k < 10 ; k++) {
 			argvtemp[i][k] = '\0';
@@ -49,14 +52,11 @@ void launchShell() {
 	}
 	
 
-	
-	
 	for (i = 0 ; i < 10 ; i++) {
 		buffertemp[i] = 0;
 	}
 	
 	
-
 	//implementasi dari execute program, sudah bisa memakai parameter
 	if (buffer[0] == '.' && buffer[1] == '/') {
 		i = 2;
@@ -149,16 +149,14 @@ void launchShell() {
 		//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
 		//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
 		
-		interrupt(0x21, 0xFF << 8 | 0x6, runprog , 0x2000, &success);
+		interrupt(0x21, curdir << 8 | 0x6, runprog , 0x2000, &success);
 	}
 
-<<<<<<< HEAD
-	//implementasi dari cd, (..) untuk kembali
-	if (buffer[0] == 'c' && buffer[1] == 'd'){
-=======
+
+
 	//implementasi dari cd
 	else if (buffer[0] == 'c' && buffer[1] == 'd'){
->>>>>>> 592314a48a28114b6b2facb88e2a2d6145cccd88
+
 		i = 3;
 		j = 0;
 		while (buffer[i] != '\0') {
@@ -166,14 +164,10 @@ void launchShell() {
 			i++;
 			j++;
 		}
-<<<<<<< HEAD
 
 		//set argc dan argv
 
 		//execute changeDirectory program
-
-=======
->>>>>>> 592314a48a28114b6b2facb88e2a2d6145cccd88
 	} 
 
 	//panggil echo
