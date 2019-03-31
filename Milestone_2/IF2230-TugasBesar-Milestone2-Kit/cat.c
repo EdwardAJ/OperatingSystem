@@ -4,7 +4,7 @@ int main () {
    char buffer[512];
    char curdir;
    char argc;
-   char argv[10][16];
+   char argv[32][32];
 
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0x00, 0x00);
@@ -34,12 +34,15 @@ int main () {
    		}
    	//ada "-w", maka read dan print isi dari file saja.
    	} else {
-         interrupt(0x21, 0x00, argv[0], 0x00, 0x00);
-         interrupt(0x21, 0x00, argv[1], 0x00, 0x00);
+         //interrupt(0x21, 0x00, argv[0], 0x00, 0x00);
+         //interrupt(0x21, 0x00, argv[1], 0x00, 0x00);
    		interrupt(0x21, 0x00, "Masukkan teks: ", 0x00 ,0x00);
    		interrupt(0x21, 0x01, buffer, 0x00, 0x00);
 
-   		interrupt(0x21, (0xFF << 8) | 0x05, buffer, argv[0], &result);
+   		interrupt(0x21, (0xFF << 8) | 0x05, buffer, argv[1], &result);
+         //interrupt(0x21, 0x00 , "TESTING" , 0x00 , 0x00);
+
+         interrupt(0x21, 0x00, argv[1], 0x00, 0x00);
    		if (result != 0) {
    			interrupt(0x21, 0x00, "File sudah ada atau directory tidak ada", 0x00 ,0x00);
    			interrupt(0x21, 0x00, "\n", 0x00 ,0x00);

@@ -64,10 +64,10 @@ void launchShell() {
 	char argc = 0;
 	int i,j,k;
 	int success = -1;
-	char *argv[10];
-	char buffertemp[10];
-	char buffertemp1[10];
-	char argvtemp[10][10];
+	char *argv[32];
+	char buffertemp[32];
+	char buffertemp1[32];
+	char argvtemp[32][32];
 	char curdir;
 
 	//Get current directory
@@ -152,7 +152,6 @@ void launchShell() {
 		}	
 			
 		interrupt(0x21, 0x20, curdir, argc, argv);
-		
 		interrupt(0x21, curdir << 8 | 0x6, runprog , 0x2000, &success);
 	}
 
@@ -239,26 +238,34 @@ void launchShell() {
 		j = 0;
 	
 		while (buffer[i] != '\0' && buffer[i] != ' ') {
-			argv[0][j] = buffer[i];
+			buffertemp[j] = buffer[i];
 			i++;
 			j++;
 		}
-		argv[0][j] = '\0';
-
+		buffertemp[j] = '\0';
+		//buffertemp1[j] = '\0';
+		argv[0] = buffertemp;
 
 		//Ada argumen kedua
 		if (buffer[i] == ' '){
 			argc = 2;
 			i++;
 			j = 0;
-			if (argv[0][0] == '-' && argv[0][1] == 'w') {
+
+			for (k = 0 ; k < 10 ; k++) {
+				buffertemp1[k] = '\0';
+			}
+
+			if (buffertemp[0] == '-' && buffertemp[1] == 'w') {
 				while (buffer[i] != '\0') {
-					argv[1][j] = buffer[i];
+					buffertemp1[j] = buffer[i];
 					i++;
 					j++;
 				}
 			}
-			argv[1][j] = '\0';
+			buffertemp1[j] = '\0';
+				
+			argv[1] = buffertemp1;
 		}
 		//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
 		//interrupt(0x21, 0x00, "\n",0x00, 0x00);

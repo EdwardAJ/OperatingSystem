@@ -4,7 +4,7 @@ int main() {
    char buffer[100];
    char curdir;
    char argc;
-   char argv[16][16];
+   char argv[16][32];
 
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0, 0);
