@@ -47,9 +47,13 @@ int findIndexFile(char *name, char root);
 void changeDirectory(char *path, int *result, char parentIndex);
 
 int main() {
+
    int string[256];
    char buffer[MAX_BYTE];
    int success;
+   char argc = 0;
+   char *argv[10];
+   char curdir = 0xFF;
    
    /*
    //ASCII Art untuk logo.
@@ -71,6 +75,7 @@ int main() {
    //interrupt(0x21, 0x0 , "string" , 0x0 , 0x0);
 
    //readFile()
+   interrupt(0x21, 0x20, curdir, argc, argv);
    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
    //handleInterrupt21(0x4, buffer, "key.txt", &success);
    //andleInterrupt21(0x0, buffer);

@@ -1,3 +1,4 @@
+#define DIRS_SECTOR 0x101
 int main(){
     char curdirIdx;
     char dirs;
@@ -19,11 +20,12 @@ int main(){
 
 void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex adalah indeks current directory
    char dirs[SECTOR_SIZE];
-   char buffer[MAX_FILENAME];       //untuk menyimpan nama direktori yang ingin dituju
+   char buffer[MAX_FILENAME]; //untuk menyimpan nama direktori yang ingin dituju
    int i, j, counter, lastNameLen;
    int found = 0;
 
-   readSector(dirs, DIRS_SECTOR);
+   //readSector(dirs, DIRS_SECTOR);
+   interrupt(0x21, 0x02, dirs, FILES_SECTOR, 0x00);
    lastNameLen = 0;
 
    while (1){
