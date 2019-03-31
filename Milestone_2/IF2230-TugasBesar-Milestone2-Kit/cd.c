@@ -28,6 +28,7 @@ void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex 
    interrupt(0x21, 0x02, dirs, FILES_SECTOR, 0x00);
    lastNameLen = 0;
 
+
    while (1){
       //isi buffer dengan \0
       for (j = 0; j < MAX_FILENAME; ++j){
@@ -38,10 +39,8 @@ void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex 
          //isi buffer dengan nama direktori pertama dari path
          buffer[j] = path[i];
       }
-
-      if (path[i] == '/'){
-         lastNameLen = i + 1;
-      }
+      
+      lastNameLen = i + 1;
 
       //jika pathnya kosong, cd akan kembali ke root direktory
       if (buffer[0] == '\0'){
@@ -53,7 +52,7 @@ void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex 
          parentIndex = dirs[(parentIndex*MAX_DIRECTORY) + 1];
       }else{
          //Cek apakah nama direktori di buffer ada di dirs dengan indeks parentnya == parentIndex
-         for (j = 1; j < SECTOR_SIZE; j + MAX_FILENAME){
+         for (j = 1; j < SECTOR_SIZE; j + MAX_DIRECTORY){
             counter = 0;
 
             while (dirs[j + counter] == buffer[counter] && buffer[counter] != '\0'){
