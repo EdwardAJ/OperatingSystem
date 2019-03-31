@@ -171,7 +171,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
          deleteDirectory(BX, CX, AH);
          break;
       case 0x20:
-         putArgs(BX, CX);
+         putArgs(BX, CX, DX);
          break;
       case 0x21:
          getCurdir(BX);
