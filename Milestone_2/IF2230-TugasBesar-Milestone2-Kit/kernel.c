@@ -45,6 +45,7 @@ void getArgv (char index, char *argv);
 int findIndexDirectory(char *name, int root);
 int findIndexFile(char *name, char root);
 void changeDirectory(char *path, int *result, char parentIndex);
+void remove(char *path, int *result, char parentIndex);
 
 int main() {
    int string[256];
@@ -851,7 +852,6 @@ void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex 
    char dirs[SECTOR_SIZE];
    char buffer[MAX_FILENAME];       //untuk menyimpan nama direktori yang ingin dituju
    int i, j, counter, lastNameLen;
-   int found = 0;
 
    readSector(dirs, DIRS_SECTOR);
    lastNameLen = 0;
@@ -907,14 +907,13 @@ void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex 
 
       //jika sudah sampai akhir path, berhenti
       if (path[lastNameLen] == '\0'){
-         found = 1;
          *result = parentIndex;
          break;
       }
 
    }
 
-   if (found){
+   if (*result != NOT_FOUND){
       //Ganti current direktory dengan nama direktori parentIndex
 
 
@@ -922,6 +921,10 @@ void changeDirectory(char *path, int *result, char parentIndex){  //parentIndex 
    }   
    
 
+}
+
+void remove(char *path, int *result, int parentIndex){
+   
 }
 
 
