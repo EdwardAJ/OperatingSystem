@@ -16,7 +16,3 @@ int main(){
     // Nggak tau yang mau ditulis disini ._.
      return 0;
 }
-
-
-
-   

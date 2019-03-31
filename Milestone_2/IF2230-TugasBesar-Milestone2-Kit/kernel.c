@@ -45,6 +45,7 @@ void getArgv (char index, char *argv);
 int findIndexDirectory(char *name, int root);
 int findIndexFile(char *name, char root);
 void changeDirectory(char *path, int *result, char parentIndex);
+void remove(char *path, int *result, char parentIndex);
 
 int main() {
 
@@ -67,14 +68,13 @@ int main() {
    
    //drawLogo(logo, 528);
    
-
-   //printString("TEST 1");
    
    //handleInterrupt21(0x6, "keyproc", 0x2000, &success);
    //printString("sukses");
    //interrupt(0x21, 0x0 , "string" , 0x0 , 0x0);
 
    //readFile()
+   //printString("TESTING");
    interrupt(0x21, 0x20, curdir, argc, argv);
    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
    //handleInterrupt21(0x4, buffer, "key.txt", &success);
@@ -171,7 +171,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
          deleteDirectory(BX, CX, AH);
          break;
       case 0x20:
-         putArgs(BX, CX);
+         putArgs(BX, CX, DX);
          break;
       case 0x21:
          getCurdir(BX);
@@ -859,8 +859,5 @@ void getArgv (char index, char *argv) {
       }
    }
 } 
-
-
-
 
 

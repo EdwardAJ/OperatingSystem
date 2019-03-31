@@ -30,17 +30,30 @@ int result;
 void launchShell();
 void changeDirectory(char *path, int *result, int parentIndex);
 int div(int a, int b);
+void copyString(char *src, char *dest);
 
 int main () {
 	int i;
 	int input_switch = 0;
 	
-	//if (curdir == 0xFF){
-	//	interrupt(0x21, 0x00 , "MANTAB BANG" , 0x00 , 0x00);
-	//}
-	
 	//Initialize path
 	launchShell();
+}
+
+void copyString(char *src, char *dest){
+	int i = 0;
+	interrupt(0x21, 0x0, "=-=-=-=\0", 0x0 , 0x0);
+	interrupt(0x21, 0x0, "\n", 0x0 , 0x0);
+	interrupt(0x21, 0x0, "\r", 0x0 , 0x0);
+	interrupt(0x21, 0x0, src, 0x0 , 0x0);
+	interrupt(0x21, 0x0, "\n", 0x0 , 0x0);
+	interrupt(0x21, 0x0, "\r", 0x0 , 0x0);
+	while (src[i] != '\0'){
+		dest[i] = src[i];
+		i++;
+	}
+
+	dest[i] = '\0';
 }
 
 void launchShell() {
@@ -48,7 +61,7 @@ void launchShell() {
 	int jawal;
 	int isEnd = 0;
 	int result;
-	char argc;
+	char argc = 0;
 	int i,j,k;
 	int success = -1;
 	char *argv[10];
@@ -88,16 +101,15 @@ void launchShell() {
 		i = 2;
 		j = 0;
 
-		
-		//idx = -1;
 		//Baca execute program
 		while (buffer[i] != '\0' && buffer[i] != ' ') {
 			runprog[j] = buffer[i];
 			i++;
 			j++;
 		}
-		interrupt(0x21, 0x00 , runprog, 0x00, 0x00);
+
 		runprog[j] = '\0';
+		
 		//Ada parameter
 		if (buffer[i] == ' '){
 			argc = 1;
@@ -105,75 +117,41 @@ void launchShell() {
 			idx = 0;
 			j = 0;
 						
-				while (buffer[i] != '\0' && buffer[i] != ' ') {
-					//argv[0][j] = buffer[i];
-					buffertemp[j] = buffer[i];
-					//argv[0][j] = buffer[i];
-					i++;
-					j++;
-				}
-				jawal = j;
-				//argvtemp[0][j] = '\0';
-				//argv[0][j] = 0;
-				argv[0] = buffertemp;
-				//for (k = 0 ; k <= j ; k++) 
-					//argv[0][k] = argvtemp[0][k];
-				//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
-				argv[0][j] = '\0';
-				
-				for (k = 0 ; k < 10 ; k++) {
-					buffertemp1[k] = '\0';
-				}
+			while (buffer[i] != '\0' && buffer[i] != ' ') {
+				buffertemp[j] = buffer[i];
+				i++;
+				j++;
+			}
+			buffertemp[j] = '\0';
+			jawal = j;
 
-				//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
-				if(buffer[i] == ' ') {
-					argc = 2;
-					i++;
-					j = 0;
-	
-
-					while (buffer[i] != '\0' && buffer[i] != ' ') {
-						buffertemp1[j] = buffer[i];
-						//argv[1][j] = buffer[i];
-						//argv[1][j] = buffer[i];
-						i++;
-						j++;
-						
-						//argv[1][j] = '\0';
-						
-					}
-					buffertemp1[j] = 0;
-					argv[1] = buffertemp1;
-					//argvtemp[1][j] = '\0';
-					
-				
-					//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
-
-					
-					
-						//argv[1] = argvtemp[0];
-					//argv[1][j] = 0;
-					//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
-				}
-
+			argv[0] = buffertemp;
 			
-						//argv[0][k] = argvtemp[0][k];
-
-			
-						//argv[1][k] = argvtemp[1][k];
-				//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
-				//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
-				
-				//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
-				
+			for (k = 0 ; k < 10 ; k++) {
+				buffertemp1[k] = '\0';
 			}
 
-			//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
+			if(buffer[i] == ' ') {
+				argc = 2;
+				i++;
+				j = 0;
+
+				while (buffer[i] != '\0' && buffer[i] != ' ') {
+					buffertemp1[j] = buffer[i];
+					i++;
+					j++;
+					
+				}
+
+				buffertemp1[j] = '\0';
+				
+				k = 0;
+				argv[1] = buffertemp1;
+			}
+				
+		}	
 			
 		interrupt(0x21, 0x20, curdir, argc, argv);
-				
-		//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
-		//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
 		
 		interrupt(0x21, curdir << 8 | 0x6, runprog , 0x2000, &success);
 	}
