@@ -9,14 +9,14 @@ int main() {
    char elemen;
    char buffer[100];
    char curdir;
-   char argc;
-   char argv[32][32];
+   //char argc;
+   //char argv[32][32];
 
    //interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0, 0);
-   interrupt(0x21, 0x22, &argc, 0, 0);
-   interrupt(0x21, 0x23, 0, argv[0], 0);
+   //interrupt(0x21, 0x22, &argc, 0, 0);
+   //interrupt(0x21, 0x23, 0, argv[0], 0);
 
 
    for (i = 0 ; i < 32 ; i++) {
@@ -49,11 +49,13 @@ int main() {
 
       if (j==16) {
          interrupt(0x21, 0x00 , dirs_store[idx_dirs], 0x00 , 0x00);
-         interrupt(0x21, 0x00 , "\n", 0x00 , 0x00);
-         interrupt(0x21, 0x00 , "\r", 0x00 , 0x00);
+         interrupt(0x21, 0x00 , ", ", 0x00 , 0x00);
+         //interrupt(0x21, 0x00 , "\r", 0x00 , 0x00);
          idx_dirs++;
       }
-   } 
+   }
+   interrupt(0x21, 0x00 , "\n", 0x00 , 0x00);
+   interrupt(0x21, 0x00 , "\r", 0x00 , 0x00); 
    
 
    //Start reading files
@@ -79,11 +81,13 @@ int main() {
       //interrupt(0x21, 0x00 , files_store[idx_files], 0x00 , 0x00);
       if (j == 16) {
          interrupt(0x21, 0x00 , files_store[idx_files], 0x00 , 0x00);
-         interrupt(0x21, 0x00 , "\n", 0x00 , 0x00);
-         interrupt(0x21, 0x00 , "\r", 0x00 , 0x00);
+         interrupt(0x21, 0x00 , ", ", 0x00 , 0x00);
+         //interrupt(0x21, 0x00 , "\r", 0x00 , 0x00);
          idx_files++;
       }
    } 
+   interrupt(0x21, 0x00 , "\n", 0x00 , 0x00);
+   interrupt(0x21, 0x00 , "\r", 0x00 , 0x00);
 
    //Terminate program
    interrupt(0x21, 0x07, &result , 0x0, 0x0 );

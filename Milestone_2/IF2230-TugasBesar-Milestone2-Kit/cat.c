@@ -22,7 +22,7 @@ int main () {
    		//readFile(BX, CX, DX, AH);
    		//readFile(char *buffer, char *path, int *result, char parentIndex);
    		//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
-   		interrupt(0x21, (0xFF << 8) | 0x04, buffer, argv[0], &result);
+   		interrupt(0x21, (curdir << 8) | 0x04, buffer, argv[0], &result);
    		if (result != 0) {
    			interrupt(0x21, 0x00, "Tidak ada", 0x00 ,0x00);
    			interrupt(0x21, 0x00, "\n", 0x00 ,0x00);
@@ -39,7 +39,7 @@ int main () {
    		interrupt(0x21, 0x00, "Masukkan teks: ", 0x00 ,0x00);
    		interrupt(0x21, 0x01, buffer, 0x00, 0x00);
 
-   		interrupt(0x21, (0xFF << 8) | 0x05, buffer, argv[1], &result);
+   		interrupt(0x21, (curdir << 8) | 0x05, buffer, argv[1], &result);
          //interrupt(0x21, 0x00 , "TESTING" , 0x00 , 0x00);
 
          interrupt(0x21, 0x00, argv[1], 0x00, 0x00);
