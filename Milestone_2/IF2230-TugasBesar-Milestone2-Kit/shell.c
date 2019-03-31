@@ -152,13 +152,11 @@ void launchShell() {
 		interrupt(0x21, 0xFF << 8 | 0x6, runprog , 0x2000, &success);
 	}
 
-<<<<<<< HEAD
-	//implementasi dari cd, (..) untuk kembali
-	if (buffer[0] == 'c' && buffer[1] == 'd'){
-=======
+
+
 	//implementasi dari cd
 	else if (buffer[0] == 'c' && buffer[1] == 'd'){
->>>>>>> 592314a48a28114b6b2facb88e2a2d6145cccd88
+
 		i = 3;
 		j = 0;
 		while (buffer[i] != '\0') {
@@ -166,14 +164,13 @@ void launchShell() {
 			i++;
 			j++;
 		}
-<<<<<<< HEAD
+
+		
+
 
 		//set argc dan argv
 
 		//execute changeDirectory program
-
-=======
->>>>>>> 592314a48a28114b6b2facb88e2a2d6145cccd88
 	} 
 
 	//panggil echo
