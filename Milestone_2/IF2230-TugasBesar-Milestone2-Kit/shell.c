@@ -2,6 +2,7 @@ char buffer[512];
 char path[512];
 char curdir;
 char runprog[512];
+int lwfound;
 int result;
 void launchShell();
 
@@ -19,11 +20,15 @@ int main () {
 
 void launchShell() {
 	int idx;
+	int jawal;
+	int isEnd = 0;
 	char argc;
-	int i,j;
+	int i,j,k;
 	int success = -1;
-	char *argv[512];
-	
+	char *argv[10];
+	char buffertemp[10];
+	char buffertemp1[10];
+	char argvtemp[10][10];
 	//interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
 	
 	interrupt(0x21, 0x0 , "$" , 0x0 , 0x0);
@@ -33,39 +38,117 @@ void launchShell() {
 
 	for (i = 0 ; i < 512 ; i++) {
 		runprog[i] = '\0';
+		//argvtemp[i] = '\0';
 	}
 
-	//implementasi dari execute program (belum memakai argumen)
+	
+	for (i = 0 ; i < 10 ; i++) {
+		for (k = 0 ; k < 10 ; k++) {
+			argvtemp[i][k] = '\0';
+		}
+	}
+	
+
+	
+	
+	for (i = 0 ; i < 10 ; i++) {
+		buffertemp[i] = 0;
+	}
+	
+	
+
+	//implementasi dari execute program, sudah bisa memakai parameter
 	if (buffer[0] == '.' && buffer[1] == '/') {
 		i = 2;
 		j = 0;
-		idx = -1;
-		//Baca execute program
-		while (buffer[i] != '\0') {
-			while (buffer[i] != '\0' && buffer[i] != ' ') {
-				if (idx == -1) {
-					//interrupt(0x21, 0x0,"testing",0x0,0x0);
-					runprog[j] = buffer[i];
-				} else {
-					argv[idx][j] = buffer[i];
-				}
-				i++;
-				j++;
-			}
-			if (idx != -1) {
-				argv[idx][j] = '\0';
- 			}
-			//buang semua space
-			while(buffer[i] == ' ') {
-				i++;
-			}
-			idx++;
-			j = 0;
-		}
-		argc = idx+1;
 
-		//setArgs
+		
+		//idx = -1;
+		//Baca execute program
+		while (buffer[i] != '\0' && buffer[i] != ' ') {
+			runprog[j] = buffer[i];
+			i++;
+			j++;
+		}
+		interrupt(0x21, 0x00 , runprog, 0x00, 0x00);
+		runprog[j] = '\0';
+		//Ada parameter
+		if (buffer[i] == ' '){
+			argc = 1;
+			i++;
+			idx = 0;
+			j = 0;
+						
+				while (buffer[i] != '\0' && buffer[i] != ' ') {
+					//argv[0][j] = buffer[i];
+					buffertemp[j] = buffer[i];
+					//argv[0][j] = buffer[i];
+					i++;
+					j++;
+				}
+				jawal = j;
+				//argvtemp[0][j] = '\0';
+				//argv[0][j] = 0;
+				argv[0] = buffertemp;
+				//for (k = 0 ; k <= j ; k++) 
+					//argv[0][k] = argvtemp[0][k];
+				//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
+				argv[0][j] = '\0';
+				
+				for (k = 0 ; k < 10 ; k++) {
+					buffertemp1[k] = '\0';
+				}
+
+				//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
+				if(buffer[i] == ' ') {
+					argc = 2;
+					i++;
+					j = 0;
+	
+
+					while (buffer[i] != '\0' && buffer[i] != ' ') {
+						buffertemp1[j] = buffer[i];
+						//argv[1][j] = buffer[i];
+						//argv[1][j] = buffer[i];
+						i++;
+						j++;
+						
+						//argv[1][j] = '\0';
+						
+					}
+					buffertemp1[j] = 0;
+					argv[1] = buffertemp1;
+					//argvtemp[1][j] = '\0';
+					
+				
+					//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
+
+					
+					
+						//argv[1] = argvtemp[0];
+					//argv[1][j] = 0;
+					//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
+				}
+
+			
+						//argv[0][k] = argvtemp[0][k];
+
+			
+						//argv[1][k] = argvtemp[1][k];
+				//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
+				//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
+				
+				//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
+				
+			}
+
+			//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
+			
 		interrupt(0x21, 0x20, curdir, argc, argv);
+				
+		//interrupt(0x21, 0x00 , argv[0], 0x00, 0x00);
+		//interrupt(0x21, 0x00 , argv[1], 0x00, 0x00);
+		
 		interrupt(0x21, 0xFF << 8 | 0x6, runprog , 0x2000, &success);
 	}
 
@@ -144,20 +227,25 @@ void launchShell() {
 		}
 		argv[0][j] = '\0';
 
+
 		//Ada argumen kedua
 		if (buffer[i] == ' '){
 			argc = 2;
 			i++;
-			if (buffer[i] == '-' && buffer[i+1] == 'w'){
-				argv[1][0] = '-';
-				argv[1][1] = 'w';
-				argv[1][2] = '\0';
+			j = 0;
+			if (argv[0][0] == '-' && argv[0][1] == 'w') {
+				while (buffer[i] != '\0') {
+					argv[1][j] = buffer[i];
+					i++;
+					j++;
+				}
 			}
+			argv[1][j] = '\0';
 		}
 		//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
 		//interrupt(0x21, 0x00, "\n",0x00, 0x00);
 		//interrupt(0x21, 0x00, "\r",0x00, 0x00);
-	
+		
 		//setArgs
 		interrupt(0x21, 0x20, curdir, argc, argv);
 
@@ -167,23 +255,20 @@ void launchShell() {
 	}
 
 
-	
-
-	//Clear argv
-
 	for (i = 0 ; i < 512 ; i++) {
 		for (j = 0 ; j < 512 ; j++) {
 			argv[i][j] = '\0';
 		}
-	}
+	} 
 
+	//Clear argv
 	if (success != 0) {
 		interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+		//TERMINATE PROGRAM.
+		interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 	}
-
-	interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 
 }
 	

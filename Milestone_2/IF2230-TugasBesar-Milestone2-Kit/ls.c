@@ -13,7 +13,6 @@ int main() {
    char argv[4][16];
 
    //interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
-
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0, 0);
    interrupt(0x21, 0x22, &argc, 0, 0);
@@ -28,6 +27,10 @@ int main() {
    }
    
    //Start reading current directory
+
+   interrupt(0x21, 0x00 , "Berikut adalah direktori pada direktori ini:", 0x00 , 0x00);
+   interrupt(0x21, 0x00 , "\n", 0x00 , 0x00);
+   interrupt(0x21, 0x00 , "\r", 0x00 , 0x00);
    idx_dirs = 0;
    interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0x00);
    for(i = 0 ; i < 32; i++) {
@@ -54,6 +57,10 @@ int main() {
    
 
    //Start reading files
+
+   interrupt(0x21, 0x00 , "Berikut adalah files pada direktori ini:", 0x00 , 0x00);
+   interrupt(0x21, 0x00 , "\n", 0x00 , 0x00);
+   interrupt(0x21, 0x00 , "\r", 0x00 , 0x00);
    idx_files = 0;
    interrupt(0x21, 0x02, files, FILES_SECTOR, 0x00);
    for(i = 0 ; i < 32; i++) {
@@ -80,6 +87,5 @@ int main() {
 
    //Terminate program
    interrupt(0x21, 0x07, &result , 0x0, 0x0 );
-
    return 0;
 } 

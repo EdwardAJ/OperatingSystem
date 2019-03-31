@@ -433,8 +433,6 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
             readSector(buffer + (j*SECTOR_SIZE), sectors[fileIndex*MAX_FILES + i]);
             j++;
       }
-   } else if (fileIndex == -1) {
-      printString("TIdak ada file\n");
    }
 }
 
@@ -452,6 +450,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    int i, j, countName, sectorCount, idxFileKosong, idxParentFile, idxDirKosong;
    int found, isDir;
    char dirName[MAX_FILENAME];
+   char sectors[SECTOR_SIZE];
    char map[SECTOR_SIZE];
    char dirs[SECTOR_SIZE];
    char files[SECTOR_SIZE];
@@ -463,6 +462,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    readSector(map, MAP_SECTOR);
    readSector(dirs, DIRS_SECTOR);
    readSector(files, FILES_SECTOR);
+   readSector(sectors, SECTORS_SECTOR);
 
    //Cek apakah jumlah sektor kosong pada MAP cukup untuk write file (Step 2)
    sectorCount = 0;
@@ -539,7 +539,6 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             for (i = 1; i < 16; i++){
                files[idxFileKosong*MAX_FILES + i] =  dirName[i-1];
             }
-
             for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i){
                if (map[i] == EMPTY) {
                   //Ganti elemen map yang kosong menjadi USED. (step 8)
@@ -550,8 +549,14 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
                      //Isi sectorBuffer dengan buffer.
                      sectorBuffer[j] = buffer[sectorCount * SECTOR_SIZE + j];
                   }
+
+                  //Tulis sector apa saja yang dipakai pada SECTORS_SECTOR
+                  sectors[idxFileKosong*MAX_SECTORS+sectorCount] = i;
+                  writeSector(sectors,SECTORS_SECTOR);
+
                   //Tulis sectorBuffer di sektor ke-i (yang kosong)
                   writeSector(sectorBuffer,i);
+
                   ++sectorCount;
                }
             }
@@ -787,10 +792,10 @@ void putArgs (char curdir, char argc, char **argv) {
    clear(args, SECTOR_SIZE);
 
    args[0] = curdir;
-   args[1] = argc;
+   args[1] = argc; 
    i = 0;
    j = 0;
-   for (p = 1; p < ARGS_SECTOR && i < argc; ++p) {
+   for (p = 2; p < ARGS_SECTOR && i < argc; ++p) {
       args[p] = argv[i][j];
       if (argv[i][j] == '\0') {
          ++i;
@@ -824,7 +829,7 @@ void getArgv (char index, char *argv) {
 
    i = 0;
    j = 0;
-   for (p = 1; p < ARGS_SECTOR; ++p) {
+   for (p = 2; p < ARGS_SECTOR; ++p) {
       if (i == index) {
          argv[j] = args[p];
          ++j;
