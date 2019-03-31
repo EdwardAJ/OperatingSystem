@@ -398,9 +398,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       }
       j = 0;
 
-      if (path[i] == '/'){
-         i++;
-      }
+      
 
       //Get directory name.
       for (; path[i] != '\0' && path[i] != '/'; i = i + 1){
@@ -410,7 +408,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       }
 
       //If read = '/' and not '\0', it means: read another entry in directory!
-      if (name[i] == '/'){
+      if (path[i] == '/'){
          //call findIndexDirectory (search for DIRECTORY_INDEX)
          currentDirIndex = findIndexDirectory(name, currentRoot);
          if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
@@ -423,6 +421,10 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       }else {
          //It's time to read file!
          isFile = 1;
+      }
+
+      if (path[i] == '/'){
+         i++;
       }
    }
    //call findIndexFile (search for FILE_INDEX)
@@ -470,6 +472,8 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    readSector(files, FILES_SECTOR);
    readSector(sectors, SECTORS_SECTOR);
 
+   interrupt(0x21, 0x00 , "TESTING" , 0x00 , 0x00);
+
    //Cek apakah jumlah sektor kosong pada MAP cukup untuk write file (Step 2)
    sectorCount = 0;
    for (i = 0 ; i < SECTOR_SIZE && sectorCount < *sectors; ++i){
@@ -510,10 +514,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             }
       
             j = 0;
-            if (path[i] == '/') {
-               //Increment untuk membaca nama (bukan dari '/')
-               i++;
-            }
+           
 
             //Dapatkan nama direktori awal
             for (; path[i] != '/' && path[i] != '\0'; ++i){
@@ -522,7 +523,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             }
 
             //Kalau belum saatnya membaca file
-            if (dirName[i] == '/') {
+            if (path[i] == '/') {
                currentDirIndex = findIndexDirectory(dirName, currentRoot);
                if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES) {
                   *sectors = INSUFFICIENT_DIR_ENTRIES; //Not Found (Step 4,5)
@@ -533,6 +534,11 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
             //Kalau sudah saatnya membaca file.
             } else {
                isDir = 1;
+            }
+
+            if (path[i] == '/') {
+               //Increment untuk membaca nama (bukan dari '/')
+               i++;
             }
          }
 
@@ -648,11 +654,7 @@ void makeDirectory(char *path, int *result, char parentIndex) {
             name[j] = '\0';
          }
          
-         //Jika variabel i sudah mencapai '/'.
-         if (path[i] == '/'){
-            i++;
-         }
-
+        
          //Traversal dari i hingga ditemukan '/0' atau '/'.
          j = 0;
          for (; path[i] != '\0' && path[i] != '/'; i++){
@@ -661,7 +663,7 @@ void makeDirectory(char *path, int *result, char parentIndex) {
          }
 
          //Jika path masih berupa dir, belum file.
-         if (name[i] == '/'){
+         if (path[i] == '/'){
             currentDirIndex = findIndexDirectory(name, currentRoot);
             if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
                *result = INSUFFICIENT_DIR_ENTRIES;
@@ -675,6 +677,12 @@ void makeDirectory(char *path, int *result, char parentIndex) {
          }  else {
             isDir = 1;
          }
+
+          //Jika variabel i sudah mencapai '/'.
+         if (path[i] == '/'){
+            i++;
+         }
+
       }
       //Cari file.
 

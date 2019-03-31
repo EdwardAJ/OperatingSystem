@@ -27,7 +27,6 @@ ld86 -o cat -d cat.o lib_asm.o
 ./loadFile mkdir
 ./loadFile ls
 ./loadFile cat
-./loadFile testread.txt
 ./loadFile keyproc2
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 bochs -f opsys.bxrc

@@ -1,3 +1,26 @@
+#define MAX_BYTE 256
+#define SECTOR_SIZE 512
+#define MAX_FILES 16
+#define MAX_FILENAME 15
+#define MAX_SECTORS 16
+#define MAX_DIRECTORY 16
+#define DIR_ENTRY_LENGTH 32
+#define MAP_SECTOR 0x100
+#define DIRS_SECTOR 0x101
+#define FILES_SECTOR 0x102
+#define SECTORS_SECTOR 0x103
+#define TRUE 1
+#define FALSE 0
+#define INSUFFICIENT_SECTORS 0
+#define INSUFFICIENT_ENTRIES -3
+#define NOT_FOUND -1
+#define INSUFFICIENT_DIR_ENTRIES -1
+#define EMPTY 0x00
+#define USED 0xFF
+#define ARGS_SECTOR 512
+#define ALREADY_EXISTS 2
+#define SUCCESS 0
+
 char buffer[512];
 char path[512];
 
@@ -5,6 +28,8 @@ char runprog[512];
 int lwfound;
 int result;
 void launchShell();
+void changeDirectory(char *path, int *result, int parentIndex);
+int div(int a, int b);
 
 int main () {
 	int i;
@@ -22,6 +47,7 @@ void launchShell() {
 	int idx;
 	int jawal;
 	int isEnd = 0;
+	int result;
 	char argc;
 	int i,j,k;
 	int success = -1;
@@ -156,7 +182,6 @@ void launchShell() {
 
 	//implementasi dari cd
 	else if (buffer[0] == 'c' && buffer[1] == 'd'){
-
 		i = 3;
 		j = 0;
 		while (buffer[i] != '\0') {
@@ -165,7 +190,15 @@ void launchShell() {
 			j++;
 		}
 
-		//set argc dan argv
+		//set curdir
+		changeDirectory(runprog, &result, &curdir);
+		interrupt(0x21, 0x20, curdir, argc, argv);
+		if (result == NOT_FOUND) {
+			interrupt(0x21,0x00, "Cannot find directory", 0x00 ,0x00);
+			interrupt(0x21,0x00, "\n", 0x00 ,0x00);
+			interrupt(0x21,0x00, "\r", 0x00 ,0x00);
+		}
+		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
 
 		//execute changeDirectory program
 	} 
@@ -278,4 +311,101 @@ void launchShell() {
 	}
 
 }
-	
+
+void changeDirectory(char *path, int *result, int parentIndex){  //parentIndex adalah indeks current directory
+   char dirs[SECTOR_SIZE];
+   char buffer[MAX_FILENAME]; //untuk menyimpan nama direktori yang ingin dituju
+   int i, j, counter, lastNameLen;
+   int found = 0;
+   int isDir = 0;
+
+   //readSector(dirs, DIRS_SECTOR);
+   interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0x00);
+   lastNameLen = 0;
+
+    if (path[0] == '\0'){
+         parentIndex = 0xFF;
+    }
+      //Jika pathnya merupakan ".." (perintah back)
+    else if (path[0] == '.' && path[1] == '.'){
+        //Ambil indeks parent direktori sekarang dan ubah parentIndex menjadi indeks parent direktori atas.
+      if (parentIndex != 0xFF){
+      		//Cari indeks direktori parentnya! (Masih salah)
+         parentIndex = dirs[(parentIndex*MAX_DIRECTORY) + 1];
+
+      }
+
+    } else {
+    	while (1){
+
+      	//isi buffer dengan \0
+      	for (j = 0; j < MAX_FILENAME; ++j){
+         	buffer[j] = '\0';
+      	}
+
+      	for (i = lastNameLen, j = 0; i < MAX_FILENAME && path[i] != '\0' && path[i] != '/'; ++i, ++j){
+        	 //isi buffer dengan nama direktori pertama dari path
+         	buffer[j] = path[i];
+      	}
+
+      	if (path[i] == '/'){
+      		//ganti i++
+         	lastNameLen = i + 1;
+      	}
+
+      	//jika pathnya kosong, cd akan kembali ke root direktory
+       	else {
+
+         //Cek apakah nama direktori di buffer ada di dirs dengan indeks parentnya == parentIndex
+         	for (j = 1; j < SECTOR_SIZE; j = j + MAX_DIRECTORY){
+            	counter = 0;
+            	//interrupt(0x21,0x00, "testing", 0x00 ,0x00);
+            	//Cari pada dirs indeks ke j+MAX_FILENAME (cari yang namanya sama)
+            	while (dirs[j + counter] == buffer[counter] && buffer[counter] != '\0'){
+               		counter = counter + 1;
+            	}
+
+            	if (buffer[counter] == '\0'){
+               		//jika ketemu, parentIndex diubah jadi indeks nama direktori di buffer
+               		if (dirs[j - 1] == parentIndex){
+                  		parentIndex = div(j-1, MAX_DIRECTORY);
+                  		break;
+               		}
+               		//Jika tidak ketemu lanjutkan pencarian
+            	}
+         	}
+
+         //Nama direktori nggak ketemu
+         if (j >= SECTOR_SIZE){
+         	//interrupt(0x21,0x00, "testing", 0x00 ,0x00);
+            *result = NOT_FOUND;
+            break;
+         }
+      }
+
+      //jika sudah sampai akhir path, berhenti
+      if (path[lastNameLen] == '\0'){
+         found = 1;
+         *result = parentIndex;
+         break;
+      }
+
+      if (*result == NOT_FOUND){
+      	break;
+      }
+   	}
+  }
+  /*
+   if (found){
+      *curdir = parentIndex;
+   }
+   */   
+}
+
+int div(int a, int b) {
+   int q = 0;
+   while(q*b <= a) {
+      q = q+1;
+   }
+   return q-1;
+}
