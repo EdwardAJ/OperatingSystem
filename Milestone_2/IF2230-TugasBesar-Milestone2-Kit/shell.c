@@ -294,7 +294,7 @@ void launchShell() {
 		i = 3;
 
 		for (k = 0 ; k < 32 ; k++) {
-			buffertemp[k] = 0;
+			buffertemp[k] = '\0';
 		}
 		j = 0;
 
@@ -306,7 +306,7 @@ void launchShell() {
 		buffertemp[j] = '\0';
 		//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
 		//argv[0][j] = '\0';
-		interrupt(0x21, (curdir << 8) | 0x09, buffertemp, &result, 0x00);
+		interrupt(0x21, (curdir << 8) | 0x0A, buffertemp, &result, 0x00);
 		if (result != 0) {
    			interrupt(0x21, 0x00, "File not found" , 0x00 ,0x00);
       		interrupt(0x21, 0x00, "\n" , 0x00 ,0x00);

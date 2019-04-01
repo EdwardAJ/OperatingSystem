@@ -46,6 +46,7 @@ int findIndexDirectory(char *name, int root);
 int findIndexFile(char *name, char root);
 void changeDirectory(char *path, int *result, char parentIndex);
 void remove(char *path, int *result, char parentIndex);
+//void deleteFilewithIndex(char parentIndex);
 
 int main() {
 
@@ -330,48 +331,6 @@ int findIndexFile(char *name, char root){
    return hsl;
 }
 
-/*
-
-int findFile(char *path, char *currentRootFound){
-   int i, j;
-   char name[16];
-   char currentRoot = 255;
-   char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
-   int isFile = 0;
-   int fileIndex;
-
-   i = 0;
-   while (!isFile){
-      for (j = 0; j < 16; j++){
-         name[j] = '\0';
-      }
-
-      j = 0;
-      if (path[i] = '/'){
-         i++;
-      }
-      for (; path[i] != '\0' || path[i] != '/'; i++){
-         name[j] = path[i];
-         j++;
-      }
-
-      if (name[i] == '/'){
-         currentDirIndex = findIndexDirectory(name, currentRoot);
-         if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
-            return -1;
-         }else {
-            currentRoot = currentDirIndex;
-         }
-      }else {
-         isFile = 1;
-      }
-   }
-
-   *currentRootFound = currentRoot;
-   fileIndex = findIndexFile(name, currentRoot);
-   return fileIndex;
-}
-*/
 
 //implementasi readFile (ISSUE)
 void readFile(char *buffer, char *path, int *result, char parentIndex){
@@ -786,7 +745,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
       //files[fileIndex*MAX_FILES + j] = '\0';
       
       //Ubah SEMUA byte nama file menjadi '\0'.
-      for (j = 1 ; j < 10 ; j++)
+      for (j = 1 ; j < 16 ; j++)
          files[fileIndex*MAX_FILES + j] = '\0';
 
       j = 0;
@@ -810,7 +769,178 @@ void deleteFile(char *path, int *result, char parentIndex) {
 
 void deleteDirectory(char *path, int *success, char parentIndex){
 
+   int i, j,k ;
+   int itemp;
+   char name[16];
+   int isFile = 0;
+   int isAwalPath =0;
+   char currentRoot = parentIndex;
+   int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+   int fileIndex;
+   char files[SECTOR_SIZE];
+   char map1 [SECTOR_SIZE];
+   char dirs1[SECTOR_SIZE];
+   char daftarSector1[SECTOR_SIZE];
+
+
+   //CARI MAJU
+
+
+   i = 0;
+   while (!isFile){
+      for (j = 0; j < 16; j++){
+         name[j] = '\0';
+      }
+
+      j = 0;
+      
+      for (; path[i] != '\0' && path[i] != '/'; i++){
+         name[j] = path[i];
+         j = j + 1;
+      }
+
+      //SHELL TIDAK JALAN SAMPAI SINI
+      
+      // INFINITE LOOP
+      
+      if (path[i] == '/'){
+         currentDirIndex = findIndexDirectory(name, currentRoot);
+         if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
+            *success = INSUFFICIENT_DIR_ENTRIES;
+            return;
+         }else {
+            currentRoot = currentDirIndex;
+         }
+      
+      } else {
+         isFile = 1;
+      }
+
+
+      if (path[i] == '/'){
+         i++;
+      }
+      itemp = i;
+      
+      //i disimpan sebagai indeks terakhir
+      
+   }
+
+   //Baca map
+   //readSector(map1, DIRS_SECTOR);
+   //readSector(dirs1, DIRS_SECTOR);
+   //Baca sectors
+   //readSector(daftarSector1, SECTORS_SECTOR);
+   //readSector(files, FILES_SECTOR);
+
+   //fileIndex = findIndexDirectory(name, currentRoot);
+   /*
+   if (fileIndex != -1) {
+      *success = 0; //KETEMU
+      //CARI MUNDUR!
+
+      /*
+      while (!isAwalPath) {
+         for (j = 0; j < 16; j++){
+            name[j] = '\0';
+         }
+
+         j = 0;
+
+         //cari dari abc/def/ghi jadi ke ghi/def/abc
+         
+         for (i = itemp ; i >= 0 && path[i] != '/'; i--){
+            name[j] = path[i];
+            j = j + 1;
+         }
+         if (i == -1) {
+            isAwalPath = 1;
+         }
+
+         
+
+
+         //ubah byte pertama nama direktorinya menjadi karakter NUL (‘\0’).
+         //for (k = 1 ; k < 16 ; k++)
+           // dirs[fileIndex*MAX_FILES + k] = '\0';
+
+         
+
+         for (k = 0 ; k < 32 ; k++) {
+            if (files[k*MAX_FILES] == fileIndex) {
+               //HAPUS SEMUA FILE YANG PARENTNYA fileIndex
+               //deleteFilewithIndex(fileIndex);
+            }
+         }
+
+         
+
+         if (path[i] == '/' && i >= 0){
+            i--;
+         }
+         
+
+
+      }
+      
+
+     
+   } else {
+      *success = NOT_FOUND; //(NOT FOUND)
+   }
+   */
+
 }
+
+
+
+//void deleteFilewithIndex(char parentIndex){
+   /*
+   int i, j;
+   int fileIndex;
+   char files[SECTOR_SIZE];
+   char map [SECTOR_SIZE];
+   char daftarSector[SECTOR_SIZE];
+
+
+   //Baca map
+   readSector(map, DIRS_SECTOR);
+   //Baca sectors
+   readSector(daftarSector, SECTORS_SECTOR);
+   readSector(files, FILES_SECTOR);
+
+   fileIndex = parentIndex;
+
+   //Kalau ditemukan
+   if (fileIndex != -1){
+      j = 1;
+
+      //files[fileIndex*MAX_FILES + j] = '\0';
+      
+      //Ubah SEMUA byte nama file menjadi '\0'.
+      for (j = 1 ; j < 16 ; j++)
+         files[fileIndex*MAX_FILES + j] = '\0';
+
+      j = 0;
+      for (i = 0 ; i < SECTOR_SIZE && j < MAX_SECTORS ; i++) {
+         //Cek sektor pada daftarSektor yang sama dengan isi dari map.
+         if (map[i] == daftarSector[fileIndex*MAX_SECTORS+j]) {
+            //daftarSector[fileIndex*MAX_SECTORS+j] = '\0';
+            map[i] = '\0';
+            j++;
+         }
+      }
+      
+      writeSector(files, FILES_SECTOR);
+      writeSector(daftarSector, SECTORS_SECTOR);
+      writeSector(map, MAP_SECTOR);
+      
+   }  
+   */
+
+//}
+
+
 
 void putArgs (char curdir, char argc, char **argv) {
    char args[SECTOR_SIZE];
