@@ -92,7 +92,7 @@ void launchShell() {
 	}
 	
 
-	for (i = 0 ; i < 10 ; i++) {
+	for (i = 0 ; i < 32 ; i++) {
 		buffertemp[i] = 0;
 	}
 	
@@ -128,7 +128,7 @@ void launchShell() {
 
 			argv[0] = buffertemp;
 			
-			for (k = 0 ; k < 10 ; k++) {
+			for (k = 0 ; k < 32 ; k++) {
 				buffertemp1[k] = '\0';
 			}
 
@@ -288,6 +288,35 @@ void launchShell() {
 		//interrupt(0x21, 0x00, "", 0x00 ,0x00);
 		//execute Program
 		interrupt(0x21, 0xFF << 8 | 0x6, "cat" , 0x2000, &success);
+
+	} else if (buffer[0] == 'r' && buffer[1] == 'm') {
+		argc = 1;
+		i = 3;
+
+		for (k = 0 ; k < 32 ; k++) {
+			buffertemp[k] = 0;
+		}
+		j = 0;
+
+		while (buffer[i] != '\0') {
+			buffertemp[j] = buffer[i];
+			i++;
+			j++;
+		}
+		buffertemp[j] = '\0';
+		//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
+		//argv[0][j] = '\0';
+		interrupt(0x21, (curdir << 8) | 0x09, buffertemp, &result, 0x00);
+		if (result != 0) {
+   			interrupt(0x21, 0x00, "File not found" , 0x00 ,0x00);
+      		interrupt(0x21, 0x00, "\n" , 0x00 ,0x00);
+      		interrupt(0x21, 0x00, "\r" , 0x00 ,0x00);
+   		}
+
+   		//TERMINATE PROGRAM
+		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
+		//interrupt(0x21, 0x20, curdir, argc, argv);
+		//interrupt(0x21, 0xFF << 8 | 0x6, "rm" , 0x2000, &success);
 	}
 
 

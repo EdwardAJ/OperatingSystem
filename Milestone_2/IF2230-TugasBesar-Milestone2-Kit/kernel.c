@@ -733,14 +733,15 @@ void deleteFile(char *path, int *result, char parentIndex) {
    int fileIndex;
    char files[SECTOR_SIZE];
    char map [SECTOR_SIZE];
+   char dirs[SECTOR_SIZE];
    char daftarSector[SECTOR_SIZE];
 
    //Baca map
    readSector(map, DIRS_SECTOR);
-
+   readSector(dirs, DIRS_SECTOR);
    //Baca sectors
    readSector(daftarSector, SECTORS_SECTOR);
-
+   readSector(files, FILES_SECTOR);
 
    i = 0;
    while (!isFile){
@@ -749,15 +750,13 @@ void deleteFile(char *path, int *result, char parentIndex) {
       }
 
       j = 0;
-      if (path[i] = '/'){
-         i++;
-      }
+      
       for (; path[i] != '\0' && path[i] != '/'; i++){
          name[j] = path[i];
-         j++;
+         j = j + 1;
       }
 
-      if (name[i] == '/'){
+      if (path[i] == '/'){
          currentDirIndex = findIndexDirectory(name, currentRoot);
          if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
             *result = INSUFFICIENT_DIR_ENTRIES;
@@ -765,8 +764,13 @@ void deleteFile(char *path, int *result, char parentIndex) {
          }else {
             currentRoot = currentDirIndex;
          }
-      }else {
+
+      } else {
          isFile = 1;
+      }
+
+      if (path[i] == '/'){
+         i++;
       }
    }
 
@@ -775,26 +779,33 @@ void deleteFile(char *path, int *result, char parentIndex) {
 
    //Kalau ditemukan
    if (fileIndex != -1){
+      
+      *result = 0;
+      j = 1;
+
+      //files[fileIndex*MAX_FILES + j] = '\0';
+      
       //Ubah SEMUA byte nama file menjadi '\0'.
-      for (i = 1 ; i < 16 ; i++)
-         files[fileIndex*MAX_FILES + i] = '\0';
+      for (j = 1 ; j < 10 ; j++)
+         files[fileIndex*MAX_FILES + j] = '\0';
 
       j = 0;
       for (i = 0 ; i < SECTOR_SIZE && j < MAX_SECTORS ; i++) {
          //Cek sektor pada daftarSektor yang sama dengan isi dari map.
          if (map[i] == daftarSector[fileIndex*MAX_SECTORS+j]) {
-            map[i] = EMPTY;
-            daftarSector[fileIndex*MAX_SECTORS+j] = EMPTY;
+            //daftarSector[fileIndex*MAX_SECTORS+j] = '\0';
+            map[i] = '\0';
             j++;
          }
       }
-
-      writeSector(map, MAP_SECTOR);
-      writeSector(files, FILES_SECTOR);
-      writeSector(daftarSector, SECTORS_SECTOR);
       
-      *result = 0;
-   }
+      //Infinite looping :
+      writeSector(files, FILES_SECTOR);
+      //
+      writeSector(daftarSector, SECTORS_SECTOR);
+      writeSector(map, MAP_SECTOR);
+      
+   }  
 }
 
 void deleteDirectory(char *path, int *success, char parentIndex){
