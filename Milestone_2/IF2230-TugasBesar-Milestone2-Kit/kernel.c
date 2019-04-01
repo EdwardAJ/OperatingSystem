@@ -766,7 +766,7 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    char name[16];
    char isDir = 0;
    char currentRoot = parentIndex;
-   char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+   int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    char fileIndex;
    char dirIndex;
    char files[SECTOR_SIZE];
@@ -774,7 +774,6 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    char dirs[SECTOR_SIZE];
    char daftarSector[SECTOR_SIZE];
 
-   printString("DEL");
 
    //Cari path secara traversal
    i = 0;
@@ -812,7 +811,6 @@ void deleteDirectory(char *path, int *success, char parentIndex){
       
    }
 
-   interrupt(0x21, 0x00, "BBB\n\r", 0, 0);
 
    //Baca map
    readSector(map, MAP_SECTOR);
@@ -820,9 +818,14 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    //Baca sectors
    readSector(daftarSector, SECTORS_SECTOR);
    readSector(files, FILES_SECTOR);
-   currentDirIndex = findIndexDirectory(name, currentRoot);
    
-   deleteDirectoryWithIndex(currentDirIndex);
+   currentDirIndex = findIndexDirectory(name, currentRoot);
+   if (currentDirIndex == -1){
+      *success = NOT_FOUND;
+   } else {
+      deleteDirectoryWithIndex(currentDirIndex);
+   }
+   
 }
 
 void deleteDirectoryWithIndex(char dirIndex){

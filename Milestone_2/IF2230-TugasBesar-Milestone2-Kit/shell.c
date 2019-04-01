@@ -36,9 +36,11 @@ int findIndexDirectory(char *name, int root);
 int main () {
 	int i;
 	int input_switch = 0;
+	int success = 0;
 	
 	//Initialize path
 	launchShell();
+	//interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 }
 
 void copyString(char *src, char *dest){
@@ -259,7 +261,6 @@ void launchShell() {
 
 		//Ada argumen kedua
 		if (buffer[i] == ' '){
-			argc = 2;
 			i++;
 			j = 0;
 
@@ -267,16 +268,18 @@ void launchShell() {
 				buffertemp1[k] = '\0';
 			}
 
-			if (buffertemp[0] == '-' && buffertemp[1] == 'w') {
+			
+				argc = 2;
 				while (buffer[i] != '\0') {
 					buffertemp1[j] = buffer[i];
 					i++;
 					j++;
 				}
+				buffertemp1[j] = '\0';
+
+			if (buffertemp1[0] == '-' && buffertemp1[1] == 'w') {
+				argv[1] = buffertemp1;
 			}
-			buffertemp1[j] = '\0';
-				
-			argv[1] = buffertemp1;
 		}
 		//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
 		//interrupt(0x21, 0x00, "\n",0x00, 0x00);
@@ -296,19 +299,38 @@ void launchShell() {
 		for (k = 0 ; k < 32 ; k++) {
 			buffertemp[k] = '\0';
 		}
-		j = 0;
+		if (buffer[i] == '-' && buffer[i + 1] == 'r'){
+			j = 0;
+			i = 6;
 
-		while (buffer[i] != '\0') {
-			buffertemp[j] = buffer[i];
-			i++;
-			j++;
+			for (k = 0 ; k < 32 ; k++) {
+				buffertemp[k] = '\0';
+			}
+
+			while (buffer[i] != '\0') {
+				buffertemp[j] = buffer[i];
+				i++;
+				j++;
+			}
+			buffertemp[j] = '\0';
+			//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
+			//argv[0][j] = '\0';
+			interrupt(0x21, (curdir << 8) | 0x0A, buffertemp, &result, 0x00);
+		}else {
+			j = 0;
+
+			while (buffer[i] != '\0') {
+				buffertemp[j] = buffer[i];
+				i++;
+				j++;
+			}
+			buffertemp[j] = '\0';
+
+			interrupt(0x21, (curdir << 8) | 0x09, buffertemp, &result, 0x00);
 		}
-		buffertemp[j] = '\0';
-		//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
-		//argv[0][j] = '\0';
-		interrupt(0x21, (curdir << 8) | 0x0A, buffertemp, &result, 0x00);
 		if (result != 0) {
-   			interrupt(0x21, 0x00, "File not found" , 0x00 ,0x00);
+			//interrupt(0x21, 0x07, &result , 0x0, 0x0 );
+   			interrupt(0x21, 0x00, "Not found" , 0x00 ,0x00);
       		interrupt(0x21, 0x00, "\n" , 0x00 ,0x00);
       		interrupt(0x21, 0x00, "\r" , 0x00 ,0x00);
    		}
@@ -317,6 +339,8 @@ void launchShell() {
 		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
 		//interrupt(0x21, 0x20, curdir, argc, argv);
 		//interrupt(0x21, 0xFF << 8 | 0x6, "rm" , 0x2000, &success);
+	} else {
+		interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 	}
 
 
@@ -331,9 +355,11 @@ void launchShell() {
 		interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+
 		//TERMINATE PROGRAM.
 		interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 	}
+	
 
 }
 
