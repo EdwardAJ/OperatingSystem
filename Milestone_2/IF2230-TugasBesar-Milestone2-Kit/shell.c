@@ -339,8 +339,32 @@ void launchShell() {
 		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
 		//interrupt(0x21, 0x20, curdir, argc, argv);
 		//interrupt(0x21, 0xFF << 8 | 0x6, "rm" , 0x2000, &success);
-	} else {
-		interrupt(0x21, 0x07, &success , 0x0, 0x0 );
+	}else if (buffer[0] == 'c' && buffer[1] == 'l' && buffer[2] == 'r'){
+		interrupt(0x21, 0x24, 0x0 , 0x0, 0x0);
+		interrupt(0x21, 0x07, &success , 0x0, 0x0);
+	}else if (buffer[0] == 'm' && buffer[1] == 'v'){
+		i = 3;
+		j = 0;
+
+		while (buffer[i] != '\0' && buffer[i] != ' '){
+			buffertemp[j] = buffer[i];
+			i++;
+			j++;
+		}
+
+		j = 0;
+		i++;
+
+		while (buffer[i] != '\0' && buffer[i] != ' '){
+			buffertemp1[j] = buffer[i];
+			i++;
+			j++;
+		}
+
+		interrupt(0x21, 0x25, buffertemp, buffertemp1, curdir);
+		interrupt(0x21, 0x07, &success , 0x0, 0x0);
+	}else {
+		interrupt(0x21, 0x07, &success , 0x0, 0x0);
 	}
 
 
