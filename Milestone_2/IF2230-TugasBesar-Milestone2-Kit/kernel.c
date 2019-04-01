@@ -46,7 +46,7 @@ int findIndexDirectory(char *name, int root);
 int findIndexFile(char *name, char root);
 void changeDirectory(char *path, int *result, char parentIndex);
 void remove(char *path, int *result, char parentIndex);
-//void deleteFilewithIndex(char parentIndex);
+void deleteFilewithIndex(char parentIndex);
 
 int main() {
 
@@ -75,7 +75,7 @@ int main() {
    //interrupt(0x21, 0x0 , "string" , 0x0 , 0x0);
 
    //readFile()
-   //printString("TESTING");
+   printString("TESTING");
    interrupt(0x21, 0x20, curdir, argc, argv);
    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
    //handleInterrupt21(0x4, buffer, "key.txt", &success);
@@ -742,9 +742,9 @@ void deleteFile(char *path, int *result, char parentIndex) {
       j = 0;
       for (i = 0 ; i < SECTOR_SIZE && j < MAX_SECTORS ; i++) {
          //Cek sektor pada daftarSektor yang sama dengan isi dari map.
-         if (map[i] == daftarSector[fileIndex*MAX_SECTORS+j]) {
+         if (i == daftarSector[fileIndex*MAX_SECTORS+j]) {
             //daftarSector[fileIndex*MAX_SECTORS+j] = '\0';
-            map[i] = '\0';
+            map[i] = 0x00;
             j++;
          }
       }
@@ -759,7 +759,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
 }
 
 void deleteDirectory(char *path, int *success, char parentIndex){
-   /*
+   
    int i, j, k,a  ;
    int itemp;
    char name[16];
@@ -769,11 +769,11 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    int fileIndex;
    char files[SECTOR_SIZE];
-   char map1 [SECTOR_SIZE];
-   char dirs1[SECTOR_SIZE];
-   char daftarSector1[SECTOR_SIZE];
+   char map [SECTOR_SIZE];
+   char dirs[SECTOR_SIZE];
+   char daftarSector[SECTOR_SIZE];
 
-
+   interrupt(0x21, 0x00, "DEL\n\r", 0, 0);
    //CARI MAJU
 
 
@@ -819,19 +819,19 @@ void deleteDirectory(char *path, int *success, char parentIndex){
 
    //a = 0;
    //Baca map
-   //readSector(map1, MAP_SECTOR);
-   //readSector(dirs1, DIRS_SECTOR);
+   readSector(map, MAP_SECTOR);
+   readSector(dirs, DIRS_SECTOR);
    //Baca sectors
-   //readSector(daftarSector1, SECTORS_SECTOR);
-   //readSector(files, FILES_SECTOR);
+   readSector(daftarSector, SECTORS_SECTOR);
+   readSector(files, FILES_SECTOR);
    //INFINITE LOOP STARTS HERE:
-   //findIndexDirectory(name, currentRoot);
-   /*
+   findIndexDirectory(name, currentRoot);
+   
    if (fileIndex != -1) {
       *success = 0; //KETEMU
       //CARI MUNDUR!
 
-      /*
+      
       while (!isAwalPath) {
          for (j = 0; j < 16; j++){
             name[j] = '\0';
@@ -853,15 +853,15 @@ void deleteDirectory(char *path, int *success, char parentIndex){
 
 
          //ubah byte pertama nama direktorinya menjadi karakter NUL (‘\0’).
-         //for (k = 1 ; k < 16 ; k++)
-           // dirs[fileIndex*MAX_FILES + k] = '\0';
+         for (k = 1 ; k < 16 ; k++)
+            dirs[fileIndex*MAX_FILES + k] = '\0';
 
          
 
          for (k = 0 ; k < 32 ; k++) {
             if (files[k*MAX_FILES] == fileIndex) {
                //HAPUS SEMUA FILE YANG PARENTNYA fileIndex
-               //deleteFilewithIndex(fileIndex);
+               deleteFilewithIndex(fileIndex);
             }
          }
 
@@ -880,57 +880,61 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    } else {
       *success = NOT_FOUND; //(NOT FOUND)
    }
-   */
+   
 
 }
 
 
 
-//void deleteFilewithIndex(char parentIndex){
-   /*
+void deleteFilewithIndex(char parentIndex){
+   
    int i, j;
-   int fileIndex;
+   char fileIndex;
    char files[SECTOR_SIZE];
    char map [SECTOR_SIZE];
    char daftarSector[SECTOR_SIZE];
 
-
+   
    //Baca map
-   readSector(map, DIRS_SECTOR);
+   readSector(map, MAP_SECTOR);
    //Baca sectors
    readSector(daftarSector, SECTORS_SECTOR);
    readSector(files, FILES_SECTOR);
 
    fileIndex = parentIndex;
 
-   //Kalau ditemukan
-   if (fileIndex != -1){
-      j = 1;
+   j = 1;
 
-      //files[fileIndex*MAX_FILES + j] = '\0';
-      
-      //Ubah SEMUA byte nama file menjadi '\0'.
-      for (j = 1 ; j < 16 ; j++)
-         files[fileIndex*MAX_FILES + j] = '\0';
-
-      j = 0;
-      for (i = 0 ; i < SECTOR_SIZE && j < MAX_SECTORS ; i++) {
-         //Cek sektor pada daftarSektor yang sama dengan isi dari map.
-         if (map[i] == daftarSector[fileIndex*MAX_SECTORS+j]) {
-            //daftarSector[fileIndex*MAX_SECTORS+j] = '\0';
-            map[i] = '\0';
-            j++;
-         }
+   //files[fileIndex*MAX_FILES + j] = '\0';
+   
+   //Ubah SEMUA byte nama file menjadi '\0'.
+   for (j = 1 ; j < 16 ; j++)
+      files[fileIndex*MAX_FILES + j] = 0x00;
+   
+   /*
+   j = 0;
+   for (i = 0 ; i < SECTOR_SIZE && j < MAX_SECTORS ; i++) {
+      //Cek sektor pada daftarSektor yang sama dengan isi dari map.
+      if (i == daftarSector[fileIndex*MAX_SECTORS+j]) {
+         //daftarSector[fileIndex*MAX_SECTORS+j] = '\0';
+         map[i] = 0x00;
+         j++;
       }
-      
-      writeSector(files, FILES_SECTOR);
-      writeSector(daftarSector, SECTORS_SECTOR);
-      writeSector(map, MAP_SECTOR);
-      
-   }  
+   }
    */
 
-//}
+   for (i = 0; i < SECTOR_SIZE; i++){
+      for (j = 0; j < MAX_SECTORS; j++){
+         if (i == daftarSector[fileIndex*MAX_SECTORS + j]){
+            map[i] = 0x00;
+         }   
+      }
+   }
+   
+   writeSector(map, MAP_SECTOR);
+   writeSector(files, FILES_SECTOR);
+}
+
 
 
 
