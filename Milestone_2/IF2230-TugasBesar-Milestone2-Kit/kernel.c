@@ -443,15 +443,6 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    //Kalau jumlah sektor cukup
    if (sectorCount == *sectors){
       //Cek apakah masih tersisa entri kosong pada sektor files (Step 3)
-      
-      /*
-      for (i = 1; i < SECTOR_SIZE; i + MAX_FILES){
-         if (files[i] == '\0'){
-            idxFileKosong = mod(i-1, MAX_FILES);
-            break;
-         }
-      }
-      */
 
       for (i = 0; (i*MAX_FILES < SECTOR_SIZE) && found!= 1; i++){
          if (files[i*MAX_FILES+1] == '\0'){
@@ -556,7 +547,7 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
 //implementasi executeProgram (NOT TESTED)
 void executeProgram(char *path, int segment, int *result, char parentIndex) {
    //kamus
-   char buffer[MAX_SECTORS*SECTOR_SIZE];   //diambahin buat jaga-jaga nggak semua sektor buffer ke copy
+   char buffer[32*SECTOR_SIZE];   //diambahin buat jaga-jaga nggak semua sektor buffer ke copy
    int i;
    
    readFile(buffer, path, result, parentIndex);
@@ -564,7 +555,7 @@ void executeProgram(char *path, int segment, int *result, char parentIndex) {
    //printString(buffer);
    //jika pembacaan file sukses
    if (*result == SUCCESS){
-      for (i = 0; i < MAX_SECTORS*SECTOR_SIZE; i++){
+      for (i = 0; i < 32*SECTOR_SIZE; i++){
          putInMemory(segment, i, buffer[i]);
       }
       //menjalankan program yang di memori
@@ -696,7 +687,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
    char daftarSector[SECTOR_SIZE];
 
    //Baca map
-   readSector(map, DIRS_SECTOR);
+   readSector(map, MAP_SECTOR);
    readSector(dirs, DIRS_SECTOR);
    //Baca sectors
    readSector(daftarSector, SECTORS_SECTOR);
@@ -768,8 +759,8 @@ void deleteFile(char *path, int *result, char parentIndex) {
 }
 
 void deleteDirectory(char *path, int *success, char parentIndex){
-
-   int i, j,k ;
+   
+   int i, j, k,a  ;
    int itemp;
    char name[16];
    int isFile = 0;
@@ -826,14 +817,15 @@ void deleteDirectory(char *path, int *success, char parentIndex){
       
    }
 
+   //a = 0;
    //Baca map
-   //readSector(map1, DIRS_SECTOR);
+   //readSector(map1, MAP_SECTOR);
    //readSector(dirs1, DIRS_SECTOR);
    //Baca sectors
    //readSector(daftarSector1, SECTORS_SECTOR);
    //readSector(files, FILES_SECTOR);
-
-   //fileIndex = findIndexDirectory(name, currentRoot);
+   //INFINITE LOOP STARTS HERE:
+   //findIndexDirectory(name, currentRoot);
    /*
    if (fileIndex != -1) {
       *success = 0; //KETEMU
