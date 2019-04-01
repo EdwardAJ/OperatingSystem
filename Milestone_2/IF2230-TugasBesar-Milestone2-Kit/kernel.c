@@ -759,7 +759,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
 }
 
 void deleteDirectory(char *path, int *success, char parentIndex){
-   
+   /*
    int i, j, k,a  ;
    int itemp;
    char name[16];
