@@ -28,7 +28,7 @@ char runprog[512];
 int lwfound;
 int result;
 void launchShell();
-void changeDirectory(char *path, int *result, int parentIndex);
+void changeDirectory(char *path, int *result, char parentIndex, int *curdir);
 int div(int a, int b);
 void copyString(char *src, char *dest);
 int findIndexDirectory(char *name, int root);
@@ -306,7 +306,7 @@ void launchShell() {
 		buffertemp[j] = '\0';
 		//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
 		//argv[0][j] = '\0';
-		interrupt(0x21, (curdir << 8) | 0x09, buffertemp, &result, 0x00);
+		interrupt(0x21, (curdir << 8) | 0x0A, buffertemp, &result, 0x00);
 		if (result != 0) {
    			interrupt(0x21, 0x00, "File not found" , 0x00 ,0x00);
       		interrupt(0x21, 0x00, "\n" , 0x00 ,0x00);

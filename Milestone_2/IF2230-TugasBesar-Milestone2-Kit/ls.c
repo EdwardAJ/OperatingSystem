@@ -39,8 +39,11 @@ int main() {
          if (j == 0) {
             //cari setiap directory yang memiliki parent directory curDir
             if (elemen != curdir) {
-               //interrupt(0x21, 0x00, "test", 0x00, 0x00);
                break;
+            }else {
+               if (dirs[(i * 16) + 1] == 0x00){
+                  break;
+               }
             }
          } else {
             dirs_store[idx_dirs][j-1]= dirs[(i*16)+j];
@@ -72,6 +75,10 @@ int main() {
             //cari setiap directory yang memiliki parent directory curDir
             if (elemen != curdir) {
                break;
+            }else {
+               if (files[(i * 16) + 1] == 0x00){
+                  break;
+               }
             }
          } else {
             files_store[idx_files][j-1]= files[(i*16)+j];
