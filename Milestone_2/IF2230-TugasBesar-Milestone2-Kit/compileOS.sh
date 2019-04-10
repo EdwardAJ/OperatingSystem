@@ -33,6 +33,5 @@ ld86 -o rm -d rm.o lib_asm.o
 ./loadFile rm
 ./loadFile test.txt
 ./loadFile keyproc2
-./loadfile clr.o
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 bochs -f opsys.bxrc
