@@ -37,7 +37,7 @@ int main () {
 	int i;
 	int input_switch = 0;
 	int success = 0;
-	
+	//enableInterrupts();
 	//Initialize path
 	launchShell();
 	//interrupt(0x21, 0x07, &success , 0x0, 0x0 );
@@ -60,6 +60,7 @@ void copyString(char *src, char *dest){
 }
 
 void launchShell() {
+	char PID;
 	int idx;
 	int jawal;
 	int isEnd = 0;
@@ -79,8 +80,12 @@ void launchShell() {
 	
 	interrupt(0x21, 0x0 , "$" , 0x0 , 0x0);
 	interrupt(0x21, 0x0 , " " , 0x0 , 0x0);
-	interrupt(0x21, 0x1, buffer, 0x0, 0x0);
-
+	//ReadString
+	//Format : readString(BX, CX);
+	//FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
+	//readString(char* string, int disableProcessControls)
+	interrupt(0x21, 0x1, buffer, 1, 0x0);
+	//interrupt(0x21, 0x0 , buffer , 0x0 , 0x0);
 
 	for (i = 0 ; i < 512 ; i++) {
 		runprog[i] = '\0';
@@ -113,6 +118,7 @@ void launchShell() {
 
 		runprog[j] = '\0';
 		
+		//interrupt(0x21, 0x0 , "AKU CUPU" , 0x0 , 0x0);
 		//Ada parameter
 		if (buffer[i] == ' '){
 			argc = 1;
@@ -153,9 +159,10 @@ void launchShell() {
 			}
 				
 		}	
-			
 		interrupt(0x21, 0x20, curdir, argc, argv);
-		interrupt(0x21, curdir << 8 | 0x6, runprog , 0x2000, &success);
+		//interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
+		interrupt(0x21, curdir << 8 | 0x6, runprog , &success, 0x00);
+		
 	}
 
 
@@ -209,7 +216,10 @@ void launchShell() {
 		interrupt(0x21, 0x20, curdir, argc, argv);
 
 		//execute Program
-		interrupt(0x21, 0xFF << 8 | 0x6, "echo" , 0x2000, &success);
+		//interrupt(0x21, 0x31, 0x00, 0x00, 0x00);
+		interrupt(0x21, 0xFF << 8 | 0x6, "echo" , &success, 0x00);
+
+
 	}
 
 	//panggil mkdir
@@ -363,28 +373,89 @@ void launchShell() {
 
 		interrupt(0x21, 0x25, buffertemp, buffertemp1, curdir);
 		interrupt(0x21, 0x07, &success , 0x0, 0x0);
+	
+	//PAUSE
+	} else if (buffer[0] == 'p' && buffer[1] == 'a' && buffer[2] == 'u' && buffer[3] == 's' && buffer[4] == 'e') {
+		argc = 1;
+		i = 6;
+		j = 0;
+		while (buffer[i] != '\0') {
+			argv[0][j] = buffer[i];
+			PID = buffer[i];
+			i++;
+			j++;
+		}
+		argv[0][j] = '\0';
+
+		//setArgs
+		interrupt(0x21, 0x20, curdir, argc, argv);
+
+		//FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
+		interrupt(0x21, 0x32, convPIDtoSegment(PID), &success, 0x00);
+
+	//RESUME
+	}else if (buffer[0] == 'r' && buffer[1] == 'e' && buffer[2] == 's' && buffer[3] == 'u' && buffer[4] == 'm' && buffer[5] == 'e') {
+		argc = 1;
+		i = 7;
+		j = 0;
+		while (buffer[i] != '\0') {
+			argv[0][j] = buffer[i];
+			PID = buffer[i];
+			i++;
+			j++;
+		}
+		argv[0][j] = '\0';
+
+		//setArgs
+		interrupt(0x21, 0x20, curdir, argc, argv);
+
+		//FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
+		interrupt(0x21, 0x33, convPIDtoSegment(PID), &success, 0x00);
+
+	//KILL
+	} else if (buffer[0] == 'k' && buffer[1] == 'i' && buffer[2] == 'l' && buffer[3] == 'l') {
+		argc = 1;
+		i = 5;
+		j = 0;
+		while (buffer[i] != '\0') {
+			argv[0][j] = buffer[i];
+			PID = buffer[i];
+			i++;
+			j++;
+		}
+		argv[0][j] = '\0';
+
+		//setArgs
+		interrupt(0x21, 0x20, curdir, argc, argv);
+
+		//FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
+		interrupt(0x21, 0x34, convPIDtoSegment(PID), &success, 0x00);
+
 	}else {
-		interrupt(0x21, 0x07, &success , 0x0, 0x0);
+		interrupt(0x21, 0x0 , "Tidak ada command yang Anda maksud" , 0x0 , 0x0);
+		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
+		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+		//interrupt(0x21, 0x07, &success , 0x0, 0x0);
 	}
 
-
+	/*
 	for (i = 0 ; i < 512 ; i++) {
 		for (j = 0 ; j < 512 ; j++) {
 			argv[i][j] = '\0';
 		}
 	} 
-
+	*/
 	//Clear argv
-	if (success != 0) {
-		interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
+	/* 
+	if (success < 0) {
+		//interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
-
-		//TERMINATE PROGRAM.
-		interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 	}
+	*/
 	
-
+	//EXECUTE PROGRAM ULANG
+	interrupt(0x21, curdir << 8 | 0x06, "shell", &success, 0x00);
 }
 
 void changeDirectory(char *path, int *result, char parentIndex, int *curdir) {
@@ -491,4 +562,23 @@ int findIndexDirectory(char *name, int root){
    }
 
    return hsl;
+}
+
+int convPIDtoSegment(char PID){
+	if (PID == '0')
+		return 0x2000;
+	else if (PID == '1')
+		return 0x3000;
+	else if (PID == '2')
+		return 0x4000;
+	else if (PID == '3')
+		return 0x5000;
+	else if (PID == '4')
+		return 0x6000;
+	else if (PID == '5')
+		return 0x7000;
+	else if (PID == '6')
+		return 0x8000;
+	else if (PID == '7')
+		return 0x9000;
 }

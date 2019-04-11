@@ -37,7 +37,7 @@ void clear(char *buffer, int length);
 void writeFile(char *buffer, char* path, int* sectors, char parentIndex);
 void executeProgram(char *path, int segment, int *result, char parentIndex);
 void clearScreen(int _lines);
-void drawLogo(char *_logo, int _length);
+//void drawLogo(char *_logo, int _length);
 void terminateProgram (int *result);
 void makeDirectory(char *path, int *result, char parentIndex);
 void deleteFile(char *path, int *result, char parentIndex);
@@ -74,16 +74,17 @@ int main() {
    char argc = 0;
    char *argv[32];
    char curdir = 0xFF;
-
+   //FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
    initializeProcStructures();
    makeInterrupt21();
    makeTimerInterrupt();
    
-  
    interrupt(0x21, 0x20, curdir, argc, argv);
-   interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
+   //FOMRMAT :executeProgram(BX, CX, AH);
+   interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
+   //printString("AING CUPU");
 
-   while (1);
+    while (1);
 }
 
 void clearScreen(int _lines){
@@ -97,6 +98,7 @@ void clearScreen(int _lines){
    interrupt(0x10, 0x0200, 0, 0, 0);
 }
 
+/*
 void drawLogo(char *_logo, int _length){
    //Variabel i untuk iterasi.
    //current_line menyimpan indeks baris posisi saat ini.
@@ -132,6 +134,7 @@ void drawLogo(char *_logo, int _length){
       current_char_pos++;
    }
 }
+*/
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX){
    char AL, AH;
@@ -158,7 +161,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
          writeFile(BX, CX, DX, AH);
          break;
       case 0x06:
-         executeProgram(BX, CX, DX, AH);
+         executeProgram(BX, CX, AH);
          break;
       case 0x07:
          terminateProgram(BX);
@@ -235,7 +238,7 @@ void readString(char* string, int disableProcessControls){
       //jika currChar == backspace
       if (currChar == '\b'){
          if (cur_pos > 1) {
-            printString("a");
+            //printString("a");
             interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
             interrupt(0x10, 0xE00 + '\0', 0, 0, 0);
             interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
@@ -243,17 +246,19 @@ void readString(char* string, int disableProcessControls){
             cur_pos--;
          }
       //Kasus control + C
+      //'\x03'
       } else if ((currChar == '\x03')){
          if (disableProcessControls == 1) {
             terminateProgram(res);
             //Proses sekarang langsung disleep.
-            sleep();
          }
       //Kasus control + Z
+      //'\x1A'
       } else if (currChar == '\x1A')  {
          //jalankan shell
+         sleep();
          resumeProcess(0x2000,res);
-         disableProcessControls = 0;
+         //disableProcessControls = 0;
       } else{
          interrupt(0x10, 0xE00 + currChar, 0, 0, 0);
          string[i] = currChar;

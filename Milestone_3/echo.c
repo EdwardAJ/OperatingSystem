@@ -1,10 +1,12 @@
 int main() {
    int i;
+   int success = 0;
    int result;
    char buffer[100];
    char curdir;
    char argc;
    char argv[16][32];
+   enableInterrupts();
 
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0, 0);
@@ -24,5 +26,8 @@ int main() {
    
    //Terminate program
    interrupt(0x21, 0x07, &result , 0x0, 0x0);
+   //FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
+   //interrupt(0x21, 0x33, 0x2000 , &result, 0x0);
+   //resumeProcess (BX,CX);
    return 0;
 } 
