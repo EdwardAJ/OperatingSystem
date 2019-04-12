@@ -21,10 +21,6 @@
 #define ALREADY_EXISTS 2
 #define SUCCESS 0
 
-char buffer[512];
-char path[512];
-
-char runprog[512];
 int lwfound;
 int result;
 void launchShell();
@@ -48,6 +44,10 @@ int main () {
 
 
 void launchShell() {
+	char buffer[512];
+	char path[512];
+
+	char runprog[512];
 	char PID;
 	int idx;
 	int jawal;
@@ -151,40 +151,7 @@ void launchShell() {
 		//interrupt(0x21, 0x00 , "TEST EXE PLEASE" , 0x00 ,0x00);
 		//interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
 		interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x00);
-	}
-
-
-
-	//implementasi dari cd
-	else if (buffer[0] == 'c' && buffer[1] == 'd'){
-		i = 3;
-		j = 0;
-		while (buffer[i] != '\0') {
-			runprog[j] = buffer[i];
-			i++;
-			j++;
-		}
-		interrupt(0x21,0x00, &runprog, 0x00 ,0x00);
-		interrupt(0x21,0x00, "\n\r\0", 0x00 ,0x00);
-		//set curdir
-
-		if (buffer[2] == '\0') {
-			interrupt(0x21,0x00, "Root.\n\r\0", 0x00 ,0x00);
-			curdir = 0xFF;
-			interrupt(0x21, 0x20, curdir, argc, argv);
-		} 
-		else {
-			interrupt(0x21,0x00, "Checking.\n\r\0", 0x00 ,0x00);
-			changeDirectory(runprog, &result, curdir, &curdir);
-			interrupt(0x21, 0x20, curdir, argc, argv);
-			if (result != 0) {
-				interrupt(0x21,0x00, "Cannot find directory.\n\r\0", 0x00 ,0x00);
-			} else if (result == 0) {
-				interrupt(0x21, 0x20, curdir, argc, argv);
-			}
-		}
-		interrupt(0x21,0x00, "End.\n\r\0", 0x00 ,0x00);
-	} 
+	}//implementasi dari cd
 
 	//panggil echo
 	else if (buffer[0] == 'e' && buffer[1] == 'c' && buffer[2] == 'h' && buffer[3] == 'o') {
@@ -204,8 +171,46 @@ void launchShell() {
 		//execute Program
 		//interrupt(0x21, 0x31, 0x00, 0x00, 0x00);
 		interrupt(0x21, 0xFF << 8 | 0x6, "echo" , &success, 0x00);
-
 	}
+
+	else if (buffer[0] == 'c' && buffer[1] == 'd'){
+		i = 3;
+		j = 0;
+
+		
+		while (buffer[i] != '\0') {
+			runprog[j] = buffer[i];
+			i++;
+			j++;
+		}
+
+		interrupt(0x21,0x00, "Before\n\r\0", 0x00 ,0x00);
+
+		//interrupt(0x21,0x00, runprog, 0x00 ,0x00);
+
+		interrupt(0x21,0x00, "Entering.\n\r\0", 0x00 ,0x00);
+		
+		if (buffer[2] == '\0') {
+			interrupt(0x21,0x00, "Root.\n\r\0", 0x00 ,0x00);
+			curdir = 0xFF;
+			interrupt(0x21, 0x20, curdir, argc, argv);
+		} 
+		else {
+			interrupt(0x21,0x00, "Checking.\n\r\0", 0x00 ,0x00);
+			changeDirectory(runprog, &result, curdir, &curdir);
+			interrupt(0x21, 0x20, curdir, argc, argv);
+			if (result != 0) {
+				interrupt(0x21,0x00, "Cannot find directory.\n\r\0", 0x00 ,0x00);
+			} else if (result == 0) {
+				interrupt(0x21, 0x20, curdir, argc, argv);
+			}
+		}
+		
+		interrupt(0x21,0x00, "End.\n\r\0", 0x00 ,0x00);
+		interrupt(0x21,0x00, "A.\n\r\0", 0x00 ,0x00);
+		interrupt(0x21,0x00, "B.\n\r\0", 0x00 ,0x00);
+		interrupt(0x21,0x00, "C.\n\r\0", 0x00 ,0x00);
+	} 
 
 	//panggil mkdir
 	else if (buffer[0] == 'm' && buffer[1] == 'k' && buffer[2] == 'd' && buffer[3] == 'i' && buffer[4] == 'r') {
@@ -324,7 +329,7 @@ void launchShell() {
 		}
 		if (result != 0) {
 			//interrupt(0x21, 0x07, &result , 0x0, 0x0 );
-   			interrupt(0x21, 0x00, "Not found" , 0x00 ,0x00);
+   			interrupt(0x21, 0x00, "Not found\n\r\0" , 0x00 ,0x00);
    		}
 
 	} else if (buffer[0] == 'c' && buffer[1] == 'l' && buffer[2] == 'r'){
@@ -457,6 +462,8 @@ void changeDirectory(char *path, int *result, char parentIndex, int *curdir) {
 	found = 0;
 	idxDirKosong = 0;
 	interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0x00);
+
+	interrupt(0x21, 0x00, "CD\n\r\0", 0, 0);
    
     i = 0;
     if (path[0] == '.' && path[1] == '.') {
