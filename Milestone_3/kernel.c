@@ -230,6 +230,7 @@ void printString(char* string){
 void readString(char* string, int disableProcessControls){
    int i = 0;
    int res = 0;
+   int parentSegment = 0;
    int cur_pos = 1;
    //membaca karakter pertama dari keyboard
    char currChar = interrupt(0x16, 0, 0, 0, 0);
@@ -257,7 +258,10 @@ void readString(char* string, int disableProcessControls){
       } else if (currChar == '\x1A')  {
          //jalankan shell
          sleep();
-         resumeProcess(0x2000,res);
+         setKernelDataSegment();
+         parentSegment = running->parentSegment;
+         restoreDataSegment();
+         resumeProcess(parentSegment,res);
          //disableProcessControls = 0;
       } else{
          interrupt(0x10, 0xE00 + currChar, 0, 0, 0);

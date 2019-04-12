@@ -77,7 +77,8 @@ void launchShell() {
 	//Get current directory
 	interrupt(0x21, 0x21, &curdir, 0, 0);
 	//interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
-	
+	interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
+	interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
 	interrupt(0x21, 0x0 , "$" , 0x0 , 0x0);
 	interrupt(0x21, 0x0 , " " , 0x0 , 0x0);
 	//ReadString
@@ -160,9 +161,9 @@ void launchShell() {
 				
 		}	
 		interrupt(0x21, 0x20, curdir, argc, argv);
+		//interrupt(0x21, 0x00 , "TEST EXE PLEASE" , 0x00 ,0x00);
 		//interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
-		interrupt(0x21, curdir << 8 | 0x6, runprog , &success, 0x00);
-		
+		interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x00);
 	}
 
 
