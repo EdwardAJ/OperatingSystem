@@ -1,3 +1,4 @@
+#include "proc.h"
 #define MAX_BYTE 256
 #define SECTOR_SIZE 512
 #define MAX_FILES 16
@@ -36,9 +37,11 @@ int findIndexDirectory(char *name, int root);
 int main () {
 	int i;
 	int input_switch = 0;
+	int success = 0;
 	
 	//Initialize path
 	launchShell();
+	//interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 }
 
 void copyString(char *src, char *dest){
@@ -153,7 +156,7 @@ void launchShell() {
 		}	
 			
 		interrupt(0x21, 0x20, curdir, argc, argv);
-		interrupt(0x21, curdir << 8 | 0x6, runprog , 0x2000, &success);
+		interrupt(0x21, curdir << 8 | 0x6, runprog , 0x00, &success);
 	}
 
 
@@ -186,7 +189,7 @@ void launchShell() {
 			}
 		}
 		
-		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
+		//interrupt(0x21, 0x07, &result , 0x0, 0x0 );
 
 		//execute changeDirectory program
 	} 
@@ -259,7 +262,6 @@ void launchShell() {
 
 		//Ada argumen kedua
 		if (buffer[i] == ' '){
-			argc = 2;
 			i++;
 			j = 0;
 
@@ -267,16 +269,18 @@ void launchShell() {
 				buffertemp1[k] = '\0';
 			}
 
-			if (buffertemp[0] == '-' && buffertemp[1] == 'w') {
+			
+				argc = 2;
 				while (buffer[i] != '\0') {
 					buffertemp1[j] = buffer[i];
 					i++;
 					j++;
 				}
+				buffertemp1[j] = '\0';
+
+			if (buffertemp1[0] == '-' && buffertemp1[1] == 'w') {
+				argv[1] = buffertemp1;
 			}
-			buffertemp1[j] = '\0';
-				
-			argv[1] = buffertemp1;
 		}
 		//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
 		//interrupt(0x21, 0x00, "\n",0x00, 0x00);
@@ -287,6 +291,7 @@ void launchShell() {
 
 		//interrupt(0x21, 0x00, "", 0x00 ,0x00);
 		//execute Program
+		
 		interrupt(0x21, 0xFF << 8 | 0x6, "cat" , 0x2000, &success);
 
 	} else if (buffer[0] == 'r' && buffer[1] == 'm') {
@@ -296,19 +301,38 @@ void launchShell() {
 		for (k = 0 ; k < 32 ; k++) {
 			buffertemp[k] = '\0';
 		}
-		j = 0;
+		if (buffer[i] == '-' && buffer[i + 1] == 'r'){
+			j = 0;
+			i = 6;
 
-		while (buffer[i] != '\0') {
-			buffertemp[j] = buffer[i];
-			i++;
-			j++;
+			for (k = 0 ; k < 32 ; k++) {
+				buffertemp[k] = '\0';
+			}
+
+			while (buffer[i] != '\0') {
+				buffertemp[j] = buffer[i];
+				i++;
+				j++;
+			}
+			buffertemp[j] = '\0';
+			//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
+			//argv[0][j] = '\0';
+			interrupt(0x21, (curdir << 8) | 0x0A, buffertemp, &result, 0x00);
+		}else {
+			j = 0;
+
+			while (buffer[i] != '\0') {
+				buffertemp[j] = buffer[i];
+				i++;
+				j++;
+			}
+			buffertemp[j] = '\0';
+
+			interrupt(0x21, (curdir << 8) | 0x09, buffertemp, &result, 0x00);
 		}
-		buffertemp[j] = '\0';
-		//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
-		//argv[0][j] = '\0';
-		interrupt(0x21, (curdir << 8) | 0x0A, buffertemp, &result, 0x00);
 		if (result != 0) {
-   			interrupt(0x21, 0x00, "File not found" , 0x00 ,0x00);
+			//interrupt(0x21, 0x07, &result , 0x0, 0x0 );
+   			interrupt(0x21, 0x00, "Not found" , 0x00 ,0x00);
       		interrupt(0x21, 0x00, "\n" , 0x00 ,0x00);
       		interrupt(0x21, 0x00, "\r" , 0x00 ,0x00);
    		}
@@ -317,6 +341,32 @@ void launchShell() {
 		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
 		//interrupt(0x21, 0x20, curdir, argc, argv);
 		//interrupt(0x21, 0xFF << 8 | 0x6, "rm" , 0x2000, &success);
+	}else if (buffer[0] == 'c' && buffer[1] == 'l' && buffer[2] == 'r'){
+		interrupt(0x21, 0x24, 0x0 , 0x0, 0x0);
+		interrupt(0x21, 0x07, &success , 0x0, 0x0);
+	}else if (buffer[0] == 'm' && buffer[1] == 'v'){
+		i = 3;
+		j = 0;
+
+		while (buffer[i] != '\0' && buffer[i] != ' '){
+			buffertemp[j] = buffer[i];
+			i++;
+			j++;
+		}
+
+		j = 0;
+		i++;
+
+		while (buffer[i] != '\0' && buffer[i] != ' '){
+			buffertemp1[j] = buffer[i];
+			i++;
+			j++;
+		}
+
+		interrupt(0x21, 0x25, buffertemp, buffertemp1, curdir);
+		interrupt(0x21, 0x07, &success , 0x0, 0x0);
+	}else {
+		interrupt(0x21, 0x07, &success , 0x0, 0x0);
 	}
 
 
@@ -331,86 +381,90 @@ void launchShell() {
 		interrupt(0x21, 0x0 , "Tidak ada" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
 		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+
 		//TERMINATE PROGRAM.
 		interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 	}
+	
 
 }
 
 void changeDirectory(char *path, int *result, char parentIndex, int *curdir) {
-   int i, j, idxDirKosong;
-   int found; //cek ketemu atau tidak.
-   char name[16];
-   char dirs[SECTOR_SIZE];
-   int isDir;
-   int currentRoot = parentIndex;
-   int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
-   int fileIndex;
+	int i, j, idxDirKosong;
+	int found; //cek ketemu atau tidak.
+	char name[16];
+	char dirs[SECTOR_SIZE];
+	int isDir;
+	int currentRoot = parentIndex;
+	int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+	int fileIndex;
 
-   //Cek apakah terdapat entry kosong atau tidak pada sektor dirs.
-   isDir = 0;
-   found = 0;
-   idxDirKosong = 0;
-   interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0x00);
-   
-    i = 0;
-    if (path[0] == '.' && path[1] == '.') {
-    	if (parentIndex != 0xFF)
-    		*curdir = dirs[parentIndex*16];
-    	*result = 0;
-    } else {
-    	while (!isDir){
-         //Inisialisasi name dengan null terminated sepanjang MAX_DIRECTORY (16).
-         for (j = 0; j < MAX_DIRECTORY; j++){
-            name[j] = '\0';
-         }
-         
-        
-         //Traversal dari i hingga ditemukan '/0' atau '/'.
-         j = 0;
-         for (; path[i] != '\0' && path[i] != '/'; i++){
-            name[j] = path[i];
-            j++;
-         }
-         name[j] ='\0';
+	while (1){
+		//Cek apakah terdapat entry kosong atau tidak pada sektor dirs.
+		isDir = 0;
+		found = 0;
+		idxDirKosong = 0;
+		interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0x00);
+		
+			i = 0;
+			if (path[0] == '.' && path[1] == '.') {
+				if (parentIndex != 0xFF)
+					*curdir = dirs[parentIndex*16];
+				*result = 0;
+			} else {
+				while (!isDir){
+				//Inisialisasi name dengan null terminated sepanjang MAX_DIRECTORY (16).
+				for (j = 0; j < MAX_DIRECTORY; j++){
+					name[j] = '\0';
+				}
+				
+				
+				//Traversal dari i hingga ditemukan '/0' atau '/'.
+				j = 0;
+				for (; path[i] != '\0' && path[i] != '/'; i++){
+					name[j] = path[i];
+					j++;
+				}
+				name[j] ='\0';
 
-         //Jika path masih berupa dir, belum file.
-         if (path[i] == '/'){
-            currentDirIndex = findIndexDirectory(name, currentRoot);
-            if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
-               *result = INSUFFICIENT_DIR_ENTRIES;
-               return;
-               break;
-            } 
-            else {
-               currentRoot = currentDirIndex;//dirs[currentDirIndex*MAX_DIRECTORY];
-            }
+				//Jika path masih berupa dir, belum file.
+				if (path[i] == '/'){
+					currentDirIndex = findIndexDirectory(name, currentRoot);
+					if (currentDirIndex == INSUFFICIENT_DIR_ENTRIES){
+					*result = INSUFFICIENT_DIR_ENTRIES;
+					return;
+					break;
+					} 
+					else {
+					currentRoot = currentDirIndex;//dirs[currentDirIndex*MAX_DIRECTORY];
+					}
 
-         //Jika sudah harus membaca file.
-         }  else {
-            isDir = 1;
-         }
+				//Jika sudah harus membaca file.
+				}  else {
+					isDir = 1;
+				}
 
-          //Jika variabel i sudah mencapai '/'.
-         if (path[i] == '/'){
-            i++;
-         }
+				//Jika variabel i sudah mencapai '/'.
+				if (path[i] == '/'){
+					i++;
+				}
 
-      }
-      //Cari direktori trakhir.
-      fileIndex = findIndexDirectory(name, currentRoot);
-      *result = INSUFFICIENT_DIR_ENTRIES;
-      //Kalau belum ada
-      if (fileIndex == -1){
-         *result = -1;
-         return;
-      //Kalau ada.
-      } else {
-      	*result = 0;
-      	*curdir = fileIndex;
-      }
-    } 
-   }
+			}
+			//Cari direktori trakhir.
+			fileIndex = findIndexDirectory(name, currentRoot);
+			*result = INSUFFICIENT_DIR_ENTRIES;
+			//Kalau belum ada
+			if (fileIndex == -1){
+				*result = -1;
+				return;
+			//Kalau ada.
+			} else {
+				*result = 0;
+				*curdir = fileIndex;
+			}
+		}
+	}
+}
 
 
 int findIndexDirectory(char *name, int root){

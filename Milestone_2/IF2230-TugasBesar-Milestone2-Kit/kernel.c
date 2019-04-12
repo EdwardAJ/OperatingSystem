@@ -49,6 +49,8 @@ void changeDirectory(char *path, int *result, char parentIndex);
 void remove(char *path, int *result, char parentIndex);
 void deleteFilewithIndex(char parentIndex);
 
+void move(char *path1, char *path2, char curDir);
+
 void deleteDirectoryWithIndex(char dirIndex);
 
 int isEmpty(char dirIndex);
@@ -98,10 +100,12 @@ int main() {
 void clearScreen(int _lines){
    //Prosedur membersihkan layar sebanyak _lines relatif terhadap 0x8000.
    int i;
+   int *myPointer;
    //Membersihkan layar.
    for (i = 0; i < 80 * _lines; i++){
       putInMemory(0xB000, 0x8000 + (i * 2), ' ');
    }
+   interrupt(0x10, 0x0200, 0, 0, 0);
 }
 
 void drawLogo(char *_logo, int _length){
@@ -190,6 +194,12 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
          break;
       case 0X23:
          getArgv(BX, CX);
+         break;
+      case 0x24:
+         clearScreen(25);
+         break;
+      case 0x25:
+         move(BX, CX, DX);
          break;
       default:
          printString("Invalid interrupt");
@@ -766,7 +776,7 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    char name[16];
    char isDir = 0;
    char currentRoot = parentIndex;
-   char currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
+   int currentDirIndex = INSUFFICIENT_DIR_ENTRIES;
    char fileIndex;
    char dirIndex;
    char files[SECTOR_SIZE];
@@ -774,7 +784,6 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    char dirs[SECTOR_SIZE];
    char daftarSector[SECTOR_SIZE];
 
-   printString("DEL");
 
    //Cari path secara traversal
    i = 0;
@@ -812,7 +821,6 @@ void deleteDirectory(char *path, int *success, char parentIndex){
       
    }
 
-   interrupt(0x21, 0x00, "BBB\n\r", 0, 0);
 
    //Baca map
    readSector(map, MAP_SECTOR);
@@ -820,9 +828,14 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    //Baca sectors
    readSector(daftarSector, SECTORS_SECTOR);
    readSector(files, FILES_SECTOR);
-   currentDirIndex = findIndexDirectory(name, currentRoot);
    
-   deleteDirectoryWithIndex(currentDirIndex);
+   currentDirIndex = findIndexDirectory(name, currentRoot);
+   if (currentDirIndex == -1){
+      *success = NOT_FOUND;
+   } else {
+      deleteDirectoryWithIndex(currentDirIndex);
+   }
+   
 }
 
 void deleteDirectoryWithIndex(char dirIndex){
@@ -970,6 +983,54 @@ void putArgs (char curdir, char argc, char **argv) {
    writeSector(args, ARGS_SECTOR);
 }
 
+void move(char *path1, char *path2, char curDir){
+   int id1, id2, i, j, k;
+   int isFolder1 = 0;
+   int isFile2 = 0;
+   int isToRoot = 0;
+   int loop = 1;
+   char files[512];
+   char dirs[512];
+   char namaBaru[MAX_FILENAME];
+
+   readSector(files, FILES_SECTOR);
+   readSector(dirs, DIRS_SECTOR);
+
+   id1 = findIndexFile(path1, curDir);
+   if (id1 == -1) {
+      id1 = findIndexDirectory(path1, curDir);
+      isFolder1 = 1;
+   }
+
+   if (path2[0] == '.' && path2[1] == '.'){
+      id2 = findIndexFile(path1, curDir);
+      id2 = dirs[files[id2 * 16] * 16];
+      isToRoot = 1;
+   }
+
+   if (!isToRoot){
+      id2 = findIndexDirectory(path2, curDir);
+      if (id2 == -1){
+         id2 = findIndexFile(path2, curDir);
+         isFile2 = 1;
+      }
+   }
+
+   if (id1 != -1 && id2 != -1){
+      if (!isFolder1 && !isFile2){
+         files [id1 * 16] = id2;
+      }else if (isFolder1 && !isFile2) {
+         dirs [id1 * 16] = id2;
+      }
+   }else if (!isFolder1 && isFile2 && id2 == -1 && id1 != -1){
+      for (i = 1; i < 16; ++i){
+         files[id1*16 + i] = path2[i - 1];
+      }
+   }
+
+   writeSector(files, FILES_SECTOR);
+   writeSector(dirs, DIRS_SECTOR);
+}
 
 void getCurdir (char *curdir) {
    char args[SECTOR_SIZE];
