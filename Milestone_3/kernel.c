@@ -238,7 +238,16 @@ void readString(char* string, int disableProcessControls){
    //looping selama currChar != \r
    while (currChar != '\r'){
       //jika currChar == backspace
-      if (currChar == '\b'){
+      if(!disableProcessControls) {
+         if(currChar == 0x03) {
+            terminateProgram(&res);
+         } else if (currChar == 0x1A){
+            //Pause program sekarang
+            sleep();
+            //Resume Process yang terdahulu (0x2000 itu punya shell, kan?)
+            resumeProcess(0x2000,&res);
+         }
+      }else if (currChar == '\b'){
          if (cur_pos > 1) {
             //printString("a");
             interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
@@ -249,23 +258,6 @@ void readString(char* string, int disableProcessControls){
          }
       //Kasus control + C
       //'\x03'
-      } else if ((currChar == '\x03')){
-         if (disableProcessControls == 1) {
-            terminateProgram(res);
-            //Proses sekarang langsung disleep.
-         }
-      //Kasus control + Z
-      //'\x1A'
-      } else if (currChar == '\x1A')  {
-         //jalankan shell
-         sleep();
-         /*
-         setKernelDataSegment();
-         parentSegment = running->parentSegment;
-         restoreDataSegment();
-         resumeProcess(parentSegment,res);
-         */
-         //disableProcessControls = 0;
       } else{
          interrupt(0x10, 0xE00 + currChar, 0, 0, 0);
          string[i] = currChar;
