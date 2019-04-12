@@ -27,7 +27,7 @@
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
-void readString(char *string);
+void readString(char *string, int disableProcessControl);
 int mod(int a, int b);
 int div(int a, int b);
 void readSector(char *buffer, int sector);
@@ -35,7 +35,7 @@ void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length);
 void writeFile(char *buffer, char* path, int* sectors, char parentIndex);
-void executeProgram(char *path, int segment, int *result, char parentIndex);
+void executeProgram(char *path, int *result, char parentIndex);
 void clearScreen(int _lines);
 //void drawLogo(char *_logo, int _length);
 void terminateProgram (int *result);
@@ -89,7 +89,6 @@ int main() {
 
 
 void clearScreen(int _lines){
-   /*
    //Prosedur membersihkan layar sebanyak _lines relatif terhadap 0x8000.
    int i;
    int *myPointer;
@@ -98,7 +97,6 @@ void clearScreen(int _lines){
       putInMemory(0xB000, 0x8000 + (i * 2), ' ');
    }
    interrupt(0x10, 0x0200, 0, 0, 0);
-   */
 }
 
 /*
