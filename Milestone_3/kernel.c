@@ -87,7 +87,9 @@ int main() {
     while (1);
 }
 
+
 void clearScreen(int _lines){
+   /*
    //Prosedur membersihkan layar sebanyak _lines relatif terhadap 0x8000.
    int i;
    int *myPointer;
@@ -96,6 +98,7 @@ void clearScreen(int _lines){
       putInMemory(0xB000, 0x8000 + (i * 2), ' ');
    }
    interrupt(0x10, 0x0200, 0, 0, 0);
+   */
 }
 
 /*
@@ -258,10 +261,12 @@ void readString(char* string, int disableProcessControls){
       } else if (currChar == '\x1A')  {
          //jalankan shell
          sleep();
+         /*
          setKernelDataSegment();
          parentSegment = running->parentSegment;
          restoreDataSegment();
          resumeProcess(parentSegment,res);
+         */
          //disableProcessControls = 0;
       } else{
          interrupt(0x10, 0xE00 + currChar, 0, 0, 0);
@@ -578,30 +583,6 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    }
 }
 
-/*
-//implementasi executeProgram (NOT TESTED)
-void executeProgram(char *path, int segment, int *result, char parentIndex) {
-   //kamus
-   char buffer[32*SECTOR_SIZE];   //diambahin buat jaga-jaga nggak semua sektor buffer ke copy
-   int i;
-   
-   readFile(buffer, path, result, parentIndex);
-
-   //printString(buffer);
-   //jika pembacaan file sukses
-   if (*result == SUCCESS){
-      for (i = 0; i < 32*SECTOR_SIZE; i++){
-         putInMemory(segment, i, buffer[i]);
-      }
-      //menjalankan program yang di memori
-      launchProgram(segment);
-      //printString("Selesai");                //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
-      //readFile(buffer, "key.txt", success);  //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
-      //printString(buffer);                   //tidak tereksekusi, kemungkinan masalahnya di dalam launchProgram
-   }
-}
-*/
-
 void executeProgram (char *path, int *result, char parentIndex) {
   struct PCB* pcb;
   int segment;
@@ -828,6 +809,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
 }
 
 void deleteDirectory(char *path, int *success, char parentIndex){
+   /*
    
    int i, j, k;
    char name[16];
@@ -892,10 +874,11 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    } else {
       deleteDirectoryWithIndex(currentDirIndex);
    }
-   
+   */  
 }
 
 void deleteDirectoryWithIndex(char dirIndex){
+   /*
    int i;
    char fileIndex;
    char currentDirIndex = dirIndex;
@@ -928,6 +911,7 @@ void deleteDirectoryWithIndex(char dirIndex){
    }
    
    writeSector(dirs, DIRS_SECTOR);
+   */
 }
 
 int isEmpty(char dirIndex){
@@ -984,6 +968,7 @@ char findFirstDirInDir(char dirIndex){
 }
 
 void deleteFilewithIndex(char fileIndex){
+   /*
    
    int i, j;
    char files[SECTOR_SIZE];
@@ -1015,6 +1000,7 @@ void deleteFilewithIndex(char fileIndex){
    
    writeSector(map, MAP_SECTOR);
    writeSector(files, FILES_SECTOR);
+   */
 }
 
 void putArgs (char curdir, char argc, char **argv) {

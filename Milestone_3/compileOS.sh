@@ -26,6 +26,9 @@ ld86 -o cat -d cat.o lib_asm.o
 bcc -ansi -c -o rm.o rm.c
 as86 lib.asm -o lib_asm.o
 ld86 -o rm -d rm.o lib_asm.o
+bcc -ansi -c -o ps.o ps.c
+as86 lib.asm -o lib_asm.o
+ld86 -o ps -d ps.o lib_asm.o proc.o
 ./loadFile shell
 ./loadFile echo
 ./loadFile mkdir
@@ -33,6 +36,8 @@ ld86 -o rm -d rm.o lib_asm.o
 ./loadFile cat
 ./loadFile rm
 ./loadFile test.txt
-./loadFile keyproc2
+./loadFile ps
+./loadFile keyproc3a
+./loadFile keyproc3b
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 bochs -f opsys.bxrc

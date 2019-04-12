@@ -11,13 +11,12 @@ int main() {
    char curdir;
    //char argc;
    //char argv[32][32];
-
+   enableInterrupts();
    //interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
    //Get current directory, jumlah argumen, dan isi argumen
    interrupt(0x21, 0x21, &curdir, 0, 0);
    //interrupt(0x21, 0x22, &argc, 0, 0);
    //interrupt(0x21, 0x23, 0, argv[0], 0);
-
 
    for (i = 0 ; i < 32 ; i++) {
       for (j = 0 ; j < 16 ; j++) {

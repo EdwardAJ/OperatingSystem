@@ -30,34 +30,21 @@ int result;
 void launchShell();
 void changeDirectory(char *path, int *result, char parentIndex, int *curdir);
 int div(int a, int b);
-void copyString(char *src, char *dest);
 int findIndexDirectory(char *name, int root);
 
 int main () {
 	int i;
 	int input_switch = 0;
 	int success = 0;
+	enableInterrupts();
 	//enableInterrupts();
 	//Initialize path
+	interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
+	interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
 	launchShell();
-	//interrupt(0x21, 0x07, &success , 0x0, 0x0 );
+	interrupt(0x21, 0x07, &success , 0x0, 0x0 );
 }
 
-void copyString(char *src, char *dest){
-	int i = 0;
-	interrupt(0x21, 0x0, "=-=-=-=\0", 0x0 , 0x0);
-	interrupt(0x21, 0x0, "\n", 0x0 , 0x0);
-	interrupt(0x21, 0x0, "\r", 0x0 , 0x0);
-	interrupt(0x21, 0x0, src, 0x0 , 0x0);
-	interrupt(0x21, 0x0, "\n", 0x0 , 0x0);
-	interrupt(0x21, 0x0, "\r", 0x0 , 0x0);
-	while (src[i] != '\0'){
-		dest[i] = src[i];
-		i++;
-	}
-
-	dest[i] = '\0';
-}
 
 void launchShell() {
 	char PID;
@@ -77,15 +64,13 @@ void launchShell() {
 	//Get current directory
 	interrupt(0x21, 0x21, &curdir, 0, 0);
 	//interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
-	interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
-	interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
 	interrupt(0x21, 0x0 , "$" , 0x0 , 0x0);
 	interrupt(0x21, 0x0 , " " , 0x0 , 0x0);
 	//ReadString
 	//Format : readString(BX, CX);
 	//FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
 	//readString(char* string, int disableProcessControls)
-	interrupt(0x21, 0x1, buffer, 1, 0x0);
+	interrupt(0x21, 0x1, buffer, 0x1, 0x0);
 	//interrupt(0x21, 0x0 , buffer , 0x0 , 0x0);
 
 	for (i = 0 ; i < 512 ; i++) {
@@ -189,16 +174,10 @@ void launchShell() {
 			interrupt(0x21, 0x20, curdir, argc, argv);
 			if (result != 0) {
 				interrupt(0x21,0x00, "Cannot find directory", 0x00 ,0x00);
-				interrupt(0x21,0x00, "\n", 0x00 ,0x00);
-				interrupt(0x21,0x00, "\r", 0x00 ,0x00);
 			} else if (result == 0) {
 				interrupt(0x21, 0x20, curdir, argc, argv);
 			}
 		}
-		
-		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
-
-		//execute changeDirectory program
 	} 
 
 	//panggil echo
@@ -220,7 +199,6 @@ void launchShell() {
 		//interrupt(0x21, 0x31, 0x00, 0x00, 0x00);
 		interrupt(0x21, 0xFF << 8 | 0x6, "echo" , &success, 0x00);
 
-
 	}
 
 	//panggil mkdir
@@ -240,7 +218,7 @@ void launchShell() {
 		interrupt(0x21, 0x20, curdir, argc, argv);
 
 		//execute Program
-		interrupt(0x21, 0xFF << 8 | 0x6, "mkdir" , 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "mkdir" , &success, 0x00);
 
 	}
 
@@ -250,7 +228,7 @@ void launchShell() {
 		//setArgs
 		interrupt(0x21, 0x20, curdir, argc, argv);
 		//execute Program
-		interrupt(0x21, 0xFF << 8 | 0x6, "ls" , 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "ls" , &success, 0x00);
 	}
 
 	//panggil cat
@@ -301,7 +279,7 @@ void launchShell() {
 
 		//interrupt(0x21, 0x00, "", 0x00 ,0x00);
 		//execute Program
-		interrupt(0x21, 0xFF << 8 | 0x6, "cat" , 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "cat" , &success, 0x00);
 
 	} else if (buffer[0] == 'r' && buffer[1] == 'm') {
 		argc = 1;
@@ -324,8 +302,7 @@ void launchShell() {
 				j++;
 			}
 			buffertemp[j] = '\0';
-			//interrupt(0x21, 0x00, buffertemp, 0x00 , 0x00);
-			//argv[0][j] = '\0';
+			//REMOVE FOLDER
 			interrupt(0x21, (curdir << 8) | 0x0A, buffertemp, &result, 0x00);
 		}else {
 			j = 0;
@@ -336,23 +313,17 @@ void launchShell() {
 				j++;
 			}
 			buffertemp[j] = '\0';
-
+			//REMOVE FILE
 			interrupt(0x21, (curdir << 8) | 0x09, buffertemp, &result, 0x00);
 		}
 		if (result != 0) {
 			//interrupt(0x21, 0x07, &result , 0x0, 0x0 );
    			interrupt(0x21, 0x00, "Not found" , 0x00 ,0x00);
-      		interrupt(0x21, 0x00, "\n" , 0x00 ,0x00);
-      		interrupt(0x21, 0x00, "\r" , 0x00 ,0x00);
    		}
 
-   		//TERMINATE PROGRAM
-		interrupt(0x21, 0x07, &result , 0x0, 0x0 );
-		//interrupt(0x21, 0x20, curdir, argc, argv);
-		//interrupt(0x21, 0xFF << 8 | 0x6, "rm" , 0x2000, &success);
-	}else if (buffer[0] == 'c' && buffer[1] == 'l' && buffer[2] == 'r'){
+	} else if (buffer[0] == 'c' && buffer[1] == 'l' && buffer[2] == 'r'){
 		interrupt(0x21, 0x24, 0x0 , 0x0, 0x0);
-		interrupt(0x21, 0x07, &success , 0x0, 0x0);
+
 	}else if (buffer[0] == 'm' && buffer[1] == 'v'){
 		i = 3;
 		j = 0;
@@ -373,7 +344,6 @@ void launchShell() {
 		}
 
 		interrupt(0x21, 0x25, buffertemp, buffertemp1, curdir);
-		interrupt(0x21, 0x07, &success , 0x0, 0x0);
 	
 	//PAUSE
 	} else if (buffer[0] == 'p' && buffer[1] == 'a' && buffer[2] == 'u' && buffer[3] == 's' && buffer[4] == 'e') {
@@ -432,10 +402,17 @@ void launchShell() {
 		//FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
 		interrupt(0x21, 0x34, convPIDtoSegment(PID), &success, 0x00);
 
+	} else if (buffer[0] == 'p' && buffer[1] == 's') {
+		argc = 0;
+		i = 3;
+
+		interrupt(0x21, 0x20, curdir, argc, argv);
+		interrupt(0x21, 0xFF << 8 | 0x6, "ps" , &success, 0x00);
+
 	}else {
 		interrupt(0x21, 0x0 , "Tidak ada command yang Anda maksud" , 0x0 , 0x0);
-		interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
-		interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+		//interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
+		//interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
 		//interrupt(0x21, 0x07, &success , 0x0, 0x0);
 	}
 
