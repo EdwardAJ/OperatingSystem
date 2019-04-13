@@ -20,9 +20,11 @@
 #define ARGS_SECTOR 512
 #define ALREADY_EXISTS 2
 #define SUCCESS 0
+char buffer[512];
+	char path[512];
 
-int lwfound;
-int result;
+	char runprog[512];
+ 
 void launchShell();
 void changeDirectory(char *path, int *result, char parentIndex, int *curdir);
 int div(int a, int b);
@@ -44,10 +46,6 @@ int main () {
 
 
 void launchShell() {
-	char buffer[512];
-	char path[512];
-
-	char runprog[512];
 	char PID;
 	int idx;
 	int jawal;
@@ -145,9 +143,10 @@ void launchShell() {
 				k = 0;
 				argv[1] = buffertemp1;
 			}
-				
+			
 		}	
 		interrupt(0x21, 0x20, curdir, argc, argv);
+
 		//interrupt(0x21, 0x00 , "TEST EXE PLEASE" , 0x00 ,0x00);
 		//interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
 		interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x00);

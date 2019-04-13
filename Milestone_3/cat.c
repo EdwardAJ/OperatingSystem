@@ -23,11 +23,11 @@ int main () {
    		//readFile(char *buffer, char *path, int *result, char parentIndex);
    		//interrupt(0x21, 0x00, argv[0], 0x00 ,0x00);
    		interrupt(0x21, (curdir << 8) | 0x04, buffer, argv[0], &result);
-   		if (result != 0) {
+   		if (result < 0) {
    			interrupt(0x21, 0x00, "Tidak ada", 0x00 ,0x00);
    			interrupt(0x21, 0x00, "\n", 0x00 ,0x00);
    			interrupt(0x21, 0x00, "\r", 0x00 ,0x00);
-   		} else if (result == 0) {
+   		} else if (result >=- 0) {
    			interrupt(0x21, 0x00, buffer, 0x00 ,0x00);
    			interrupt(0x21, 0x00, "\n", 0x00 ,0x00);
    			interrupt(0x21, 0x00, "\r", 0x00 ,0x00);
