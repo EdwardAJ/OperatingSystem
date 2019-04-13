@@ -37,8 +37,7 @@ int main () {
 	enableInterrupts();
 	//enableInterrupts();
 	//Initialize path
-	interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
-	interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
+	
 	while (1){
 		launchShell();
 	}
@@ -58,6 +57,7 @@ void launchShell() {
 	char buffertemp[32];
 	char buffertemp1[32];
 	char argvtemp[32][32];
+		char temp[2];
 	char curdir;
 
 	for (i = 0 ; i < 512 ; i++) {
@@ -65,6 +65,9 @@ void launchShell() {
 		runprog[i] = '\0';
 		//argvtemp[i] = '\0';
 	}
+
+	interrupt(0x21, 0x0 , "\n" , 0x0 , 0x0);
+	interrupt(0x21, 0x0 , "\r" , 0x0 , 0x0);
 
 	//Get current directory
 	interrupt(0x21, 0x21, &curdir, 0, 0);
@@ -377,21 +380,27 @@ void launchShell() {
 	//RESUME
 	}else if (buffer[0] == 'r' && buffer[1] == 'e' && buffer[2] == 's' && buffer[3] == 'u' && buffer[4] == 'm' && buffer[5] == 'e') {
 		argc = 1;
-		i = 7;
-		j = 0;
-		while (buffer[i] != '\0') {
-			argv[0][j] = buffer[i];
-			PID = buffer[i];
-			i++;
-			j++;
-		}
-		argv[0][j] = '\0';
+			i = 7;
+			j = 0;
+			temp[0] = 0;
+			temp[1] = 0;
+			temp[2] = 0;
 
-		//setArgs
-		interrupt(0x21, 0x20, curdir, argc, argv);
+			while (buffer[i] != '\0') {
+				argv[0][j] = buffer[i];
+				PID = buffer[i];
+				i++;
+				j++;
+			}
+			argv[0][j] = '\0';
+			temp[0] = PID;
+			//interrupt(0x21,0x00,temp,0x00,0x00);
 
-		//FORMAT INTERRUPT : interrupt(0x21, (AH << 8) | AL, BX, CX, DX);
-		interrupt(0x21, 0x33, convPIDtoSegment(PID), &success, 0x00);
+			//setArgs
+			interrupt(0x21, 0x20, curdir, argc, argv);
+			//Panggil SLEEP()
+			interrupt(0x21,0x31,0x00,0x00,0x00);
+			interrupt(0x21, 0x33, convPIDtoSegment(PID), &success, 0x00);
 
 	//KILL
 	} else if (buffer[0] == 'k' && buffer[1] == 'i' && buffer[2] == 'l' && buffer[3] == 'l') {
@@ -417,7 +426,7 @@ void launchShell() {
 		i = 3;
 
 		interrupt(0x21, 0x20, curdir, argc, argv);
-		interrupt(0x21, 0xFF << 8 | 0x6, "ps" , &success, 0x00);
+		interrupt(0x21, 0x35, 0x00,0x00,0x00);
 
 	}else {
 		interrupt(0x21, 0x0 , "Tidak ada command yang Anda maksud.\n\r\0" , 0x0 , 0x0);

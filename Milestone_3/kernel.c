@@ -66,6 +66,9 @@ char findFirstFileInDir(char dirIndex);
 
 char findFirstDirInDir(char dirIndex);
 
+void showProcess();
+char convSegmentToPID(int seg);
+
 int main() {
 
    int string[256];
@@ -89,6 +92,7 @@ int main() {
 
 
 void clearScreen(int _lines){
+   /*
    //Prosedur membersihkan layar sebanyak _lines relatif terhadap 0x8000.
    int i;
    int *myPointer;
@@ -97,6 +101,7 @@ void clearScreen(int _lines){
       putInMemory(0xB000, 0x8000 + (i * 2), ' ');
    }
    interrupt(0x10, 0x0200, 0, 0, 0);
+   */
 }
 
 /*
@@ -197,15 +202,22 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
       case 0x30:
          //Tidak menerima parameter.
          yieldControl();
+         break;
       case 0x31:
          sleep();
+         break;
       case 0x32:
-         //Note to Aidil dan Khairul: Semoga parameternya benar.
          pauseProcess(BX,CX);
+         break;
       case 0x33:
          resumeProcess (BX,CX);
+         break;
       case 0x34:
          killProcess(BX,CX);
+         break;
+      case 0x35:
+         showProcess();
+         break;
       default:
          printString("Invalid interrupt");
    }
@@ -1015,6 +1027,7 @@ void putArgs (char curdir, char argc, char **argv) {
 }
 
 void move(char *path1, char *path2, char curDir){
+   /*
    int id1, id2, i, j, k;
    int isFolder1 = 0;
    int isFile2 = 0;
@@ -1061,6 +1074,7 @@ void move(char *path1, char *path2, char curDir){
 
    writeSector(files, FILES_SECTOR);
    writeSector(dirs, DIRS_SECTOR);
+   */
 }
 
 void getCurdir (char *curdir) {
@@ -1196,6 +1210,77 @@ void killProcess (int segment, int *result) {
   *result = res;
 }
 
+void showProcess() {
+   int i;
+   char processPID[9];
+   char processState[9];
+   char enter[3];
+   struct PCB *process0, *process1, *process2, *process3;
+   struct PCB *process4, *process5, *process6, *process7;
+   for (i = 0 ; i < 9 ; i++) {
+      processPID[i] = '\0';
+      processState[i] = '\0';
+   }
+
+
+   i = 0;
+   setKernelDataSegment();
+   process0 = pcbPool + 0;
+   process1 = pcbPool + 1;
+   process2 = pcbPool + 2;
+   process3 = pcbPool + 3;
+   process4 = pcbPool + 4;
+   process5 = pcbPool + 5;
+   process6 = pcbPool + 6;
+   process7 = pcbPool + 7;
+
+   processPID[0] = convSegmentToPID(process0->segment);
+   processState[0] = process0->state + '0';
+   processPID[1] = convSegmentToPID(process1->segment);
+   processState[1] = process1->state + '0';
+   processPID[2] = convSegmentToPID(process2->segment);
+   processState[2] = process2->state + '0';
+   processPID[3] = convSegmentToPID(process3->segment);
+   processState[3] = process3->state + '0';
+   processPID[4] = convSegmentToPID(process4->segment);
+   processState[4] = process4->state + '0';
+   processPID[5] = convSegmentToPID(process5->segment);
+   processState[5] = process5->state + '0';
+   processPID[6] = convSegmentToPID(process6->segment);
+   processState[6] = process6->state + '0';
+   processPID[7] = convSegmentToPID(process7->segment);
+   processState[7] = process7->state + '0';
+   restoreDataSegment();
+
+   enter[0] = '\n';
+   enter[1] = '\r';
+   enter[2] = '\0';
+
+   interrupt(0x21,0x00, processPID, 0x00 ,0x00);
+   interrupt(0x21,0x00, enter, 0x00 ,0x00);
+   interrupt(0x21,0x00, processState, 0x00, 0x00);
+}
+
+char convSegmentToPID(int seg){
+   if (seg == 0x2000)
+      return '0';
+   else if (seg == 0x3000)
+      return '1';
+   else if (seg == 0x4000)
+      return '2';
+   else if (seg == 0x5000)
+      return '3';
+   else if (seg == 0x6000)
+      return '4';
+   else if (seg == 0x7000)
+      return '5';
+   else if (seg == 0x8000)
+      return '6';
+   else if (seg == 0x9000)
+      return '7';
+   else if (seg == 0x00)
+      return '9';
+}
 
 
 
