@@ -36,6 +36,7 @@ void initializeProcStructures() {
     idleProc.segment = 0x00;
     idleProc.stackPointer = 0x00;
     idleProc.parentSegment = NO_PARENT;
+		idleProc.isParallel = 0;
     
     /*
      * The PCB for the running process should refer to the PCB for the idle process     

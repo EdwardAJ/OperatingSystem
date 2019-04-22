@@ -195,11 +195,32 @@ void launchShell() {
 		}	
 		interrupt(0x21, 0x20, curdir, argc, argv);
 
+		i = 0;
+		j = 0;
+
+		for (i = 0; i < 32; i++){
+			if (buffer[i] == '&'){
+				j = 1;
+				break;
+			}
+		}
+
 		//interrupt(0x21, 0x00 , "TEST EXE PLEASE" , 0x00 ,0x00);
 		//interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
+		/*
 		if (argv[argc-1] == '&'){
+			interrupt(0x21, 0x00, "AMPERSONED", 0, 0);
 			interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x01);
 		}else{
+			interrupt(0x21, 0x00, "NOT AMPERSONED", 0, 0);
+			interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x00);
+		}*/
+
+		if (j){
+			interrupt(0x21, 0x00, "AMPERSONED", 0, 0);
+			interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x01);
+		}else{
+			interrupt(0x21, 0x00, "NOT AMPERSONED", 0, 0);
 			interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x00);
 		}
 		

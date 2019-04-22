@@ -35,7 +35,7 @@ void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length);
 void writeFile(char *buffer, char* path, int* sectors, char parentIndex);
-void executeProgram(char *path, int *result, char parentIndex);
+void executeProgram (char *path, int *result, char parentIndex, int isParallel);
 void clearScreen(int _lines);
 //void drawLogo(char *_logo, int _length);
 void terminateProgram (int *result);
@@ -69,6 +69,8 @@ char findFirstDirInDir(char dirIndex);
 void showProcess();
 char convSegmentToPID(int seg);
 
+int isBooting = 1;
+
 int main() {
 
    int string[256];
@@ -87,7 +89,7 @@ int main() {
    interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
    //printString("AING CUPU");
 
-    while (1);
+   while (1);
 }
 
 
@@ -167,7 +169,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
          writeFile(BX, CX, DX, AH);
          break;
       case 0x06:
-         executeProgram(BX, CX, AH);
+         executeProgram(BX, CX, AH, DX);
          break;
       case 0x07:
          terminateProgram(BX);
@@ -583,40 +585,47 @@ void writeFile(char *buffer, char* path, int* sectors, char parentIndex){
    }
 }
 
-void executeProgram (char *path, int *result, char parentIndex) {
-  struct PCB* pcb;
-  int segment;
-  int i, fileIndex;
-  char buffer[MAX_SECTORS * SECTOR_SIZE];
-  readFile(buffer, path, result, parentIndex);
+void executeProgram (char *path, int *result, char parentIndex, int isParallel){
+   struct PCB* pcb;
+   int segment;
+   int i, fileIndex;
+   char buffer[MAX_SECTORS * SECTOR_SIZE];
+   readFile(buffer, path, result, parentIndex);
 
-  if (*result != NOT_FOUND) {
-    setKernelDataSegment();
-    segment = getFreeMemorySegment();
-    restoreDataSegment();
-
-    fileIndex = *result;
-    if (segment != NO_FREE_SEGMENTS) {
+   if (*result != NOT_FOUND) {
       setKernelDataSegment();
-
-      pcb = getFreePCB();
-      pcb->index = fileIndex;
-      pcb->state = STARTING;
-      pcb->segment = segment;
-      pcb->stackPointer = 0xFF00;
-      pcb->parentSegment = running->segment;
-      addToReady(pcb);
-
+      segment = getFreeMemorySegment();
       restoreDataSegment();
-      for (i = 0; i < SECTOR_SIZE * MAX_SECTORS; i++) {
-        putInMemory(segment, i, buffer[i]);
+
+      fileIndex = *result;
+      if (segment != NO_FREE_SEGMENTS) {
+         setKernelDataSegment();
+
+         pcb = getFreePCB();
+         pcb->index = fileIndex;
+         pcb->state = STARTING;
+         pcb->segment = segment;
+         pcb->stackPointer = 0xFF00;
+         pcb->parentSegment = running->segment;
+         pcb->isParallel = isParallel;
+         addToReady(pcb);
+
+         restoreDataSegment();
+         for (i = 0; i < SECTOR_SIZE * MAX_SECTORS; i++) {
+            putInMemory(segment, i, buffer[i]);
+         }
+         initializeProgram(segment);
+         if (!isParallel){
+            interrupt(0x21, 0x0, "Not Parallel\0", 0, 0);
+            sleep();
+         }else {
+            interrupt(0x21, 0x0, "Parallel\0", 0, 0);
+            yieldControl();
+         }
+      } else {
+         *result = INSUFFICIENT_SEGMENTS;
       }
-      initializeProgram(segment);
-      sleep();
-    } else {
-      *result = INSUFFICIENT_SEGMENTS;
-    }
-  }
+   }
 } 
 
 
@@ -723,7 +732,16 @@ void terminateProgram (int *result) {
 
   restoreDataSegment();
   if (parentSegment != NO_PARENT) {
-    resumeProcess(parentSegment, result);
+      
+      setKernelDataSegment();
+      if (!running->isParallel){
+         restoreDataSegment();
+         resumeProcess(parentSegment, result);
+      }else {
+         restoreDataSegment();
+      }
+      
+      //resumeProcess(parentSegment, result);
   }
   yieldControl();
 } 
@@ -1114,34 +1132,42 @@ void getArgv (char index, char *argv) {
 } 
 
 void handleTimerInterrupt(int segment, int stackPointer) {
-  struct PCB *currPCB;
-  struct PCB *nextPCB;
+   struct PCB *currPCB;
+   struct PCB *nextPCB;
 
-  setKernelDataSegment();
+   setKernelDataSegment();
 
-  currPCB = getPCBOfSegment(segment);
-  currPCB->stackPointer = stackPointer;
-  if (currPCB->state != PAUSED) {
-    currPCB->state = READY;
-    addToReady(currPCB);
-  }
+   currPCB = getPCBOfSegment(segment);
+   currPCB->stackPointer = stackPointer;
 
-  do {
-    nextPCB = removeFromReady();
-  }
-  while (nextPCB != NULL && (nextPCB->state == DEFUNCT || nextPCB->state == PAUSED));
+   if (currPCB->state != PAUSED) {
+      currPCB->state = READY;
+      addToReady(currPCB);
+   }
 
-  if (nextPCB != NULL) {
-    nextPCB->state = RUNNING;
-    segment = nextPCB->segment;
-    stackPointer = nextPCB->stackPointer;
-    running = nextPCB;
-  } else {
-    running = &idleProc;
-  }
+   do {
+      nextPCB = removeFromReady();
+   }
+   while ((nextPCB != NULL && (nextPCB->state == DEFUNCT || nextPCB->state == PAUSED)));
 
-  restoreDataSegment();
-  returnFromTimer(segment, stackPointer);
+   if (nextPCB != NULL) {
+      nextPCB->state = RUNNING;
+      segment = nextPCB->segment;
+      stackPointer = nextPCB->stackPointer;
+      running = nextPCB;
+   } else {
+      running = &idleProc;
+   }
+
+   /*
+   if (!currPCB->isReceivingInput){
+      interrupt(0x21, 0x00, "NOT ISREC", 0, 0);
+   }
+   else {
+      interrupt(0x21, 0x00, "ISREC", 0, 0);
+   }*/
+   restoreDataSegment();
+   returnFromTimer(segment, stackPointer);
 } 
 
 void yieldControl () {
@@ -1154,7 +1180,7 @@ void sleep () {
   running->state = PAUSED;
   restoreDataSegment();
   yieldControl();
-} 
+}
 
 
 void pauseProcess (int segment, int *result) {
