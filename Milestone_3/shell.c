@@ -56,6 +56,8 @@ void launchShell() {
 	char *argv[32];
 	char buffertemp[32];
 	char buffertemp1[32];
+	char buffertemp2[32];
+	char buffertemp3[32];
 	char argvtemp[32][32];
 		char temp[2];
 	char curdir;
@@ -143,8 +145,51 @@ void launchShell() {
 
 				buffertemp1[j] = '\0';
 				
-				k = 0;
 				argv[1] = buffertemp1;
+
+				for (k = 0; k < 32; k++){
+					buffertemp2[k] = '\0';
+				}
+
+				if (buffer[i] == ' '){
+					argc = 3;
+					i++;
+					j = 0;
+
+					while(buffer[i] != '\0' && buffer[i] != ' '){
+						buffertemp2[j] = buffer[i];
+						i++;
+						j++;
+					}
+
+					buffertemp2[j] = '\0';
+
+					argv[2] = buffertemp2;
+
+					for (k = 0; k < 32; ++k){
+						buffertemp3[k] = '\0';
+					}
+
+					if (buffer[i] == ' '){
+						argc = 4;
+						i++;
+						j = 0;
+
+						while(buffer[i] != '\0' && buffer[i] != ' '){
+							buffertemp3[j] = buffer[i];
+							i++;
+							j++;
+						}
+
+						buffertemp3[j] = '\0';
+
+						argv[3] = buffertemp3;
+
+						k = 0;
+						j = 0;
+					}
+					
+				}
 			}
 			
 		}	
@@ -152,7 +197,12 @@ void launchShell() {
 
 		//interrupt(0x21, 0x00 , "TEST EXE PLEASE" , 0x00 ,0x00);
 		//interrupt(0x21, 0xFF << 8 | 0x06, "shell", &success, 0x00);
-		interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x00);
+		if (argv[argc-1] == '&'){
+			interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x01);
+		}else{
+			interrupt(0x21, curdir << 8 | 0x06, runprog , &success, 0x00);
+		}
+		
 	}//implementasi dari cd
 
 	//panggil echo
